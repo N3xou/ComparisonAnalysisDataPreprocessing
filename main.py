@@ -228,3 +228,4 @@ iv_woe(df, 'dependency', 10, True)
 
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 18/04/2024
+up
