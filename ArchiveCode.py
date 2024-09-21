@@ -53,3 +53,20 @@ df['NAME_FAMILY_STATUS'] = le_familystatus.fit_transform(df['NAME_FAMILY_STATUS'
 print(df['NAME_HOUSING_TYPE'].unique())
 le_housing = LabelEncoder()
 df['NAME_HOUSING_TYPE'] = le_familystatus.fit_transform(df['NAME_HOUSING_TYPE'])
+
+
+######################################### CHILDREN COUNT REMOVE bottom 0.1% occurences
+
+total_occurrences = df['CNT_CHILDREN'].value_counts().sum()
+print(f"\nTotal Occurrences: {total_occurrences}")
+
+# Calculate the threshold for 1% of total occurrences
+threshold = total_occurrences * 0.001
+print(f"Threshold for 0.1% of Total Occurrences: {threshold}")
+
+# Filter the DataFrame to remove labels with occurrences below the threshold
+df = df[df['CNT_CHILDREN'].value_counts() >= threshold]
+
+# Display the filtered DataFrame
+print("\nFiltered DataFrame (Labels with < 0.1% of Total Removed):")
+print(df)

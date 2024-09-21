@@ -57,20 +57,13 @@ print(f"Dropping duplicates, amount of unique rows: {df['ID'].nunique()}")
 df.drop_duplicates('ID', keep='last')
 
 
+######## label encoding (object > numerical values)
 
-# creating label encoders
-#print(f"Unique gender values: {df['CODE_GENDER'].unique()}")
-#changing type from string Y/N to True/False
 
-######## encoding
 
-df_encoded = df.copy()
 
-# Display the first few rows of the DataFrame after the transformation
 #print(df.head())
-
-## categorical encoder, object > numerical values
-
+df_encoded = df.copy()
 categorical_cols = df_encoded.select_dtypes(include='object').columns
 for col in categorical_cols:
     le = LabelEncoder()
@@ -80,27 +73,27 @@ for col in categorical_cols:
 
 df = df_encoded
 
-
-
-
-# removing children values of 19,14,7 . they have a low occurance and might interfere with models accuracy too much as outliers
+# decision based on observation of amount of occurences, scaling down 3+ kids into "3" group, and 5+ families into 5
+# todo: maybe change the type so it says 3+ instead of 3 for clarity
 
 # and changing type to INT from Float
 print(df['CNT_CHILDREN'].unique())
 print(df['CNT_CHILDREN'].value_counts())
+df.loc[df['CNT_CHILDREN'] >= 3, 'CNT_CHILDREN'] = 3
 
-# 15, 20 high values, removed along with many kids
 print(df['CNT_FAM_MEMBERS'].unique())
 print(df['CNT_FAM_MEMBERS'].value_counts())
+df.loc[df['CNT_FAM_MEMBERS'] >= 5, 'CNT_FAM_MEMBERS'] = 5
 
-df = df[~df['CNT_CHILDREN'].isin([19, 7, 14])]############################################## alternative to q_hi/q_low
-
-df['CNT_CHILDREN'] = df['CNT_CHILDREN'].astype(int)
 df['CNT_FAM_MEMBERS'] = df['CNT_FAM_MEMBERS'].astype(int)
 
+
+
+
+# todo: bucket income/age/days employed into groups
 print(df['AMT_INCOME_TOTAL'].unique())
 
-# Converting negative values to positive in 'DAYS_EMPLOYED' column
+# Converting negative values to positive the following columns column
 
 print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
@@ -114,8 +107,7 @@ df['MONTHS_BALANCE'] = abs(df['MONTHS_BALANCE'])
 # only value [1] ?
 print(df['FLAG_MOBIL'].unique())
 
-# status ?
-print(df['STATUS'].unique())
+
 
 print(df.head())
 print(f'Datatypes\n{df.dtypes}')
@@ -136,7 +128,7 @@ sns.scatterplot(x='ID', y='FLAG_PHONE', data=df, ax=ax[2][0])
 sns.scatterplot(x='ID', y='FLAG_EMAIL', data=df, ax=ax[2][1])
 sns.scatterplot(x='ID', y='CNT_FAM_MEMBERS', data=df, ax=ax[2][2], color='orange')
 
-plt.show()
+#plt.show()
 
 q_hi = df['CNT_CHILDREN'].quantile(0.999)
 q_low = df['CNT_CHILDREN'].quantile(0.001)
