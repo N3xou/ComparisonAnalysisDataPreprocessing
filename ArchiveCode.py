@@ -1,5 +1,19 @@
 # Manual encoding
 
+## one in all encoder
+le = LabelEncoder()
+for col in df:
+    if df[col].dtypes == 'object':
+        df[col] = le.fit_transform(df[col])
+
+# List of flags columns
+flag_columns = ['FLAG_OWN_CAR', 'FLAG_OWN_REALTY']
+
+for col in flag_columns:
+    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+    df_encoded.loc[:,col] = df_encoded[col].replace({'Y': True, 'N': False} ).infer_objects(copy=False).astype(bool)
+    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+
 
 print(df['FLAG_OWN_CAR'].unique())
 df['FLAG_OWN_CAR'] = df['FLAG_OWN_CAR'].replace({'Y': True, 'N': False}).astype(bool)

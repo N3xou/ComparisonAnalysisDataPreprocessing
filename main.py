@@ -65,29 +65,18 @@ df.drop_duplicates('ID', keep='last')
 ######## encoding
 
 df_encoded = df.copy()
-# List of flags columns
-flag_columns = ['FLAG_OWN_CAR', 'FLAG_OWN_REALTY', 'FLAG_WORK_PHONE', 'FLAG_PHONE', 'FLAG_EMAIL']
-
-for col in flag_columns:
-    print(f"Unique values in {col}: {df[col].unique()}")
-    df[col] = df[col].replace({'Y': True, 'N': False}).astype(bool)
 
 # Display the first few rows of the DataFrame after the transformation
-print(df.head())
+#print(df.head())
 
+## categorical encoder, object > numerical values
 
-## one in all encoder
-le = LabelEncoder()
-for col in df:
-    if df[col].dtypes == 'object':
-        df[col] = le.fit_transform(df[col])
-
-## new encoder approach
-
-categorical_cols = df_encoded.select_dtypes(include='object').colums
+categorical_cols = df_encoded.select_dtypes(include='object').columns
 for col in categorical_cols:
     le = LabelEncoder()
+    #print(f"Unique values in {col}: {df_encoded[col].unique()}")
     df_encoded[col] = le.fit_transform(df_encoded[col])
+    #print(f"Unique values in {col}: {df_encoded[col].unique()}")
 
 df = df_encoded
 
