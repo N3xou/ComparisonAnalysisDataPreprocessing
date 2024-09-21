@@ -6,14 +6,10 @@ from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
-
-
 # Creating dataframe, merging two dataframes into one on ID
 applicationRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\application_record.csv')
 creditRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\credit_record.csv')
 df = pd.merge(applicationRecord, creditRecord, on='ID')
-
 
 def get_category(df, col, binsnum, labels, qcut = False, replace = True):
     if replace:
@@ -39,12 +35,6 @@ def get_category(df, col, binsnum, labels, qcut = False, replace = True):
         df[name] = df[name].astype(object)
     return df
 
-
-
-
-
-
-
 ## feature
 creditRecord['dependency'] = None
 creditRecord.loc[creditRecord['STATUS'] == '2', 'dependency'] = 'Yes'
@@ -64,20 +54,14 @@ df.loc[df['target'] == 'No', 'target'] = 0
 #print(cpunt['dependency'].value_counts())
 #print(cpunt['dependency'].value_counts(normalize=True))
 
-
 # Looking into the dataframe and preprocessing data
 
 print(df.head())
-
 print(f'Datatypes\n{df.dtypes}')
-
 print(f'Shape{df.shape}')
-
 print(f'Missing data\n{df.isna().sum()}')
-
 msno.matrix(df)
 #plt.show()
-
 
 # dropping rows with missing data
 for column in df.columns:
@@ -91,6 +75,40 @@ df = df.dropna()
 print(f"Dropping duplicates, amount of unique rows: {df['ID'].nunique()}")
 df.drop_duplicates('ID', keep='last')
 
+# categorizing data into bins
+
+plt.figure()
+# todo: bucket income/age/days employed into groups
+
+print(df['AMT_INCOME_TOTAL'].unique())
+df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL'].astype(object)
+df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL']/10000
+df['AMT_INCOME_TOTAL'].plot(kind='hist',bins=40,density=True)
+#plt.show()
+# Converting negative values to positive the following columns column
+df = get_category(df,'AMT_INCOME_TOTAL', 3, [ "low", "medium", "high"], qcut=True)
+#print(df['AMT_INCOME_TOTAL'].value_counts())
+
+print(df['DAYS_BIRTH'].unique())
+df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
+df['AGE_YEARS'] = df['DAYS_BIRTH'] / 365
+df['AGE_CATEGORY'] = None
+
+# categorizing age groups
+df.loc[(df['AGE_YEARS'] >= 18) & (df['AGE_YEARS'] <= 28), 'AGE_CATEGORY'] = 'young'
+df.loc[(df['AGE_YEARS'] >= 29) & (df['AGE_YEARS'] <= 55), 'AGE_CATEGORY'] = 'mature'
+df.loc[df['AGE_YEARS'] > 55, 'AGE_CATEGORY'] = 'elder'
+
+
+df = df[df['AGE_YEARS'] >= 18]
+print(df['AGE_CATEGORY'].value_counts())
+
+
+print(df['DAYS_EMPLOYED'].unique())
+df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
+
+print(df['MONTHS_BALANCE'].unique())
+df['MONTHS_BALANCE'] = abs(df['MONTHS_BALANCE'])
 
 ######## label encoding (object > numerical values)
 
@@ -124,26 +142,10 @@ df['CNT_FAM_MEMBERS'] = df['CNT_FAM_MEMBERS'].astype(int)
 
 
 
-plt.figure()
-# todo: bucket income/age/days employed into groups
-print(df['AMT_INCOME_TOTAL'].unique())
-df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL'].astype(object)
-df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL']/10000
-df['AMT_INCOME_TOTAL'].plot(kind='hist',bins=40,density=True)
-#plt.show()
-# Converting negative values to positive the following columns column
 
 
 
 
-print(df['DAYS_BIRTH'].unique())
-df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
-
-print(df['DAYS_EMPLOYED'].unique())
-df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
-
-print(df['MONTHS_BALANCE'].unique())
-df['MONTHS_BALANCE'] = abs(df['MONTHS_BALANCE'])
 
 # only value [1] ?
 print(df['FLAG_MOBIL'].unique())
