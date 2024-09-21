@@ -29,7 +29,7 @@ def get_category(df, col, binsnum, labels, qcut = False, replace = True):
             localdf = pd.cut(df[col], bins=binsnum, labels=labels)  # equal-length cut
 
         localdf = pd.DataFrame(localdf)
-        name = 'gp' + '_' + col
+        name = 'cat' + '_' + col
         localdf[name] = localdf[col]
         df = df.join(localdf[name])
         df[name] = df[name].astype(object)
@@ -86,25 +86,31 @@ df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL']/10000
 df['AMT_INCOME_TOTAL'].plot(kind='hist',bins=40,density=True)
 #plt.show()
 # Converting negative values to positive the following columns column
-df = get_category(df,'AMT_INCOME_TOTAL', 3, [ "low", "medium", "high"], qcut=True)
+df = get_category(df,'AMT_INCOME_TOTAL', 3, [ "low", "medium", "high"], qcut=True, replace=False)
 #print(df['AMT_INCOME_TOTAL'].value_counts())
 
 print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
-df['AGE_YEARS'] = df['DAYS_BIRTH'] / 365
+df['AGE_YEARS'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
 df['AGE_CATEGORY'] = None
 
 # categorizing age groups
-df.loc[(df['AGE_YEARS'] >= 18) & (df['AGE_YEARS'] <= 28), 'AGE_CATEGORY'] = 'young'
-df.loc[(df['AGE_YEARS'] >= 29) & (df['AGE_YEARS'] <= 55), 'AGE_CATEGORY'] = 'mature'
-df.loc[df['AGE_YEARS'] > 55, 'AGE_CATEGORY'] = 'elder'
+#df.loc[(df['AGE_YEARS'] >= 18) & (df['AGE_YEARS'] <= 28), 'AGE_CATEGORY'] = 'young'
+#df.loc[(df['AGE_YEARS'] >= 29) & (df['AGE_YEARS'] <= 55), 'AGE_CATEGORY'] = 'mature'
+#df.loc[df['AGE_YEARS'] > 55, 'AGE_CATEGORY'] = 'elder'
 
+df = get_category(df,'AGE_YEARS', 3, [ "young", "mature", "elder"], replace=False,qcut=True)
 
 df = df[df['AGE_YEARS'] >= 18]
-print(df['AGE_CATEGORY'].value_counts())
+print("Lowest age per age group")
+print(df.loc[df.groupby('cat_AGE_YEARS')['AGE_YEARS'].idxmin()][['cat_AGE_YEARS', 'AGE_YEARS']])
+print("Highest age per age group")
+print(df.loc[df.groupby('cat_AGE_YEARS')['AGE_YEARS'].idxmax()][['cat_AGE_YEARS', 'AGE_YEARS']])
+#print(df['cat_AGE_YEARS'].value_counts())
 
 
 print(df['DAYS_EMPLOYED'].unique())
+
 df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
 
 print(df['MONTHS_BALANCE'].unique())
