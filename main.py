@@ -13,7 +13,7 @@ df = pd.merge(applicationRecord, creditRecord, on='ID')
 
 def get_category(df, col, binsnum, labels, qcut = False, replace = True):
     if replace:
-        if qcut:
+        if pd.qcut:
             # Quantile cut
             df[col] = pd.qcut(df[col], q=binsnum, labels=labels)
         else:
@@ -23,7 +23,7 @@ def get_category(df, col, binsnum, labels, qcut = False, replace = True):
         # Convert the column to object type (if necessary)
         df[col] = df[col].astype(object)
     else:
-        if pd.qcut:
+        if qcut:
             localdf = pd.qcut(df[col], q=binsnum, labels=labels)  # quantile cut
         else:
             localdf = pd.cut(df[col], bins=binsnum, labels=labels)  # equal-length cut
@@ -78,7 +78,7 @@ df.drop_duplicates('ID', keep='last')
 # categorizing data into bins
 
 plt.figure()
-# todo: bucket income/age/days employed into groups
+
 
 print(df['AMT_INCOME_TOTAL'].unique())
 df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL'].astype(object)
@@ -98,20 +98,29 @@ df['AGE_CATEGORY'] = None
 #df.loc[(df['AGE_YEARS'] >= 18) & (df['AGE_YEARS'] <= 28), 'AGE_CATEGORY'] = 'young'
 #df.loc[(df['AGE_YEARS'] >= 29) & (df['AGE_YEARS'] <= 55), 'AGE_CATEGORY'] = 'mature'
 #df.loc[df['AGE_YEARS'] > 55, 'AGE_CATEGORY'] = 'elder'
+#plt.figure()
+df['AGE_YEARS'].plot(kind='hist',bins = 20,density=True)
+#plt.show()
+df = get_category(df,'AGE_YEARS', 5, [ "young adult","adult", "mature adult", "middle aged","elderly"], replace=False)
 
-df = get_category(df,'AGE_YEARS', 3, [ "young", "mature", "elder"], replace=False,qcut=True)
-
-df = df[df['AGE_YEARS'] >= 18]
+df = df[df['AGE_YEARS'] >= 18] # dropping ages below 18
 print("Lowest age per age group")
 print(df.loc[df.groupby('cat_AGE_YEARS')['AGE_YEARS'].idxmin()][['cat_AGE_YEARS', 'AGE_YEARS']])
 print("Highest age per age group")
 print(df.loc[df.groupby('cat_AGE_YEARS')['AGE_YEARS'].idxmax()][['cat_AGE_YEARS', 'AGE_YEARS']])
-#print(df['cat_AGE_YEARS'].value_counts())
+print(df['cat_AGE_YEARS'].value_counts())
 
 
 print(df['DAYS_EMPLOYED'].unique())
 
 df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
+df['YEARS_EMPLOYED'] = df['DAYS_EMPLOYED'] / 365
+df['YEARS_EMPLOYED'].plot(kind='hist',bins=20,density=True)
+#plt.figure()
+#plt.show()
+df = get_category(df,'YEARS_EMPLOYED', 5, [ "lowest","low", "medium", "high","highest"], replace=False)
+
+
 
 print(df['MONTHS_BALANCE'].unique())
 df['MONTHS_BALANCE'] = abs(df['MONTHS_BALANCE'])
@@ -242,3 +251,4 @@ iv_woe(df, 'dependency', 10, True)
 
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 18/04/2024
+# todo: test different bins for ages and salary
