@@ -6,10 +6,45 @@ from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
+
+
 # Creating dataframe, merging two dataframes into one on ID
 applicationRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\application_record.csv')
 creditRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\credit_record.csv')
 df = pd.merge(applicationRecord, creditRecord, on='ID')
+
+
+def get_category(df, col, binsnum, labels, qcut = False, replace = True):
+    if replace:
+        if qcut:
+            # Quantile cut
+            df[col] = pd.qcut(df[col], q=binsnum, labels=labels)
+        else:
+            # Equal-length cut
+            df[col] = pd.cut(df[col], bins=binsnum, labels=labels)
+
+        # Convert the column to object type (if necessary)
+        df[col] = df[col].astype(object)
+    else:
+        if pd.qcut:
+            localdf = pd.qcut(df[col], q=binsnum, labels=labels)  # quantile cut
+        else:
+            localdf = pd.cut(df[col], bins=binsnum, labels=labels)  # equal-length cut
+
+        localdf = pd.DataFrame(localdf)
+        name = 'gp' + '_' + col
+        localdf[name] = localdf[col]
+        df = df.join(localdf[name])
+        df[name] = df[name].astype(object)
+    return df
+
+
+
+
+
+
+
 ## feature
 creditRecord['dependency'] = None
 creditRecord.loc[creditRecord['STATUS'] == '2', 'dependency'] = 'Yes'
@@ -89,11 +124,17 @@ df['CNT_FAM_MEMBERS'] = df['CNT_FAM_MEMBERS'].astype(int)
 
 
 
-
+plt.figure()
 # todo: bucket income/age/days employed into groups
 print(df['AMT_INCOME_TOTAL'].unique())
-
+df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL'].astype(object)
+df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL']/10000
+df['AMT_INCOME_TOTAL'].plot(kind='hist',bins=40,density=True)
+#plt.show()
 # Converting negative values to positive the following columns column
+
+
+
 
 print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
