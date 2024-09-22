@@ -20,7 +20,6 @@ def one_hot(df,feature,rank = 0):
     df = df.join(pos)
     return df
 
-
 def get_category(df, col, binsnum, labels, qcut = False, replace = True):
     if replace:
         if pd.qcut:
@@ -45,14 +44,15 @@ def get_category(df, col, binsnum, labels, qcut = False, replace = True):
         df[name] = df[name].astype(object)
     return df
 
-## feature
+## feature engineering
 creditRecord['dependency'] = None
 creditRecord.loc[creditRecord['STATUS'] == '2', 'dependency'] = 'Yes'
 creditRecord.loc[creditRecord['STATUS'] == '3', 'dependency'] = 'Yes'
 creditRecord.loc[creditRecord['STATUS'] == '4', 'dependency'] = 'Yes'
 creditRecord.loc[creditRecord['STATUS'] == '5', 'dependency'] = 'Yes'
 
-# 0 = safe, 1 = flag unsafe
+# 0 = safe, 1 = flag unsafe (to approve credit)
+
 cpunt = creditRecord.groupby('ID').count()
 cpunt.loc[cpunt['dependency'] > 0, 'dependency'] = 0
 cpunt.loc[cpunt['dependency'] == 0, 'dependency'] = 1
@@ -61,8 +61,8 @@ df = pd.merge(df, cpunt, how='inner', on='ID')
 df['target'] = df['dependency']
 df.loc[df['target'] == 'Yes', 'target'] = 1
 df.loc[df['target'] == 'No', 'target'] = 0
-#print(cpunt['dependency'].value_counts())
-#print(cpunt['dependency'].value_counts(normalize=True))
+print(cpunt['dependency'].value_counts())
+print(cpunt['dependency'].value_counts(normalize=True))
 
 # Looking into the dataframe and preprocessing data
 
@@ -73,10 +73,10 @@ print(f'Missing data\n{df.isna().sum()}')
 msno.matrix(df)
 #plt.show()
 
-
 print(df['FLAG_MOBIL'].unique())
 
 # dropping rows with missing data
+
 for column in df.columns:
     dropped_count = df[column].isna().sum()
     if dropped_count > 0:
@@ -87,11 +87,14 @@ df = df.dropna()
 
 print(f"Dropping duplicates, amount of unique rows: {df['ID'].nunique()}")
 df.drop_duplicates('ID', keep='last')
+
 # dropping flag_mobil as all values equal 1
+
 df.drop(columns=['FLAG_MOBIL'], inplace=True)
+
 # bucketing data
 
-plt.figure()
+#plt.figure()
 print(df['AMT_INCOME_TOTAL'].unique())
 df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL'].astype(object)
 df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL']/10000
@@ -102,9 +105,11 @@ df = get_category(df,'AMT_INCOME_TOTAL', 3, [ "low", "medium", "high"], qcut=Tru
 print(df['cat_AMT_INCOME_TOTAL'].value_counts())
 
 # Converting negative values to positive the following columns column
+
 print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
 df['AGE_YEARS'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
+
 # categorizing age groups
 
 #plt.figure()
@@ -119,17 +124,14 @@ print("Highest age per age group")
 print(df.loc[df.groupby('cat_AGE_YEARS')['AGE_YEARS'].idxmax()][['cat_AGE_YEARS', 'AGE_YEARS']])
 print(df['cat_AGE_YEARS'].value_counts())
 
-
 print(df['DAYS_EMPLOYED'].unique())
-
 df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
 df['YEARS_EMPLOYED'] = df['DAYS_EMPLOYED'] / 365
-df['YEARS_EMPLOYED'].plot(kind='hist',bins=20,density=True)
 #plt.figure()
+df['YEARS_EMPLOYED'].plot(kind='hist',bins=20,density=True)
 #plt.show()
 df = get_category(df,'YEARS_EMPLOYED', 5, [ "lowest","low", "medium", "high","highest"], replace=False)
 print(df['cat_YEARS_EMPLOYED'].value_counts())
-
 
 print(df['MONTHS_BALANCE'].unique())
 df['MONTHS_BALANCE'] = abs(df['MONTHS_BALANCE'])
@@ -158,7 +160,9 @@ df.loc[(df['OCCUPATION_TYPE'] == 'Managers') |
 ] = 'High position job'
 print(df['OCCUPATION_TYPE'].unique())
 print(df['NAME_EDUCATION_TYPE'].unique())
-####### Ordinal encoding
+
+# Ordinal encoding
+
 oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
 df['OCCUPATION_TYPE'] = oe.fit_transform(df[['OCCUPATION_TYPE']]).astype(int)
 print(df['OCCUPATION_TYPE'].unique())
@@ -173,9 +177,10 @@ oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
 df['num_cat_YEARS_EMPLOYED'] = oe.fit_transform(df[['cat_YEARS_EMPLOYED']]).astype(int)
 print(df['cat_YEARS_EMPLOYED'].unique())
 print(df['num_cat_YEARS_EMPLOYED'].unique())
-######## label encoding (object > numerical values)
 
-#print(df.head())
+# Label encoding
+
+print(df.head())
 df_encoded = df.copy()
 label_cols = ['CODE_GENDER','FLAG_OWN_CAR','FLAG_OWN_REALTY']
 for col in label_cols:
@@ -183,17 +188,17 @@ for col in label_cols:
     print(f"Unique values in {col}: {df_encoded[col].unique()}")
     df_encoded[col] = le.fit_transform(df_encoded[col])
     print(f"Unique values in {col}: {df_encoded[col].unique()}")
-
 df = df_encoded
+
 ######## one hot encoding
+
 onehot_cols = ['NAME_INCOME_TYPE','NAME_FAMILY_STATUS', 'NAME_HOUSING_TYPE', 'cat_AGE_YEARS']
 for col in onehot_cols:
     df = one_hot(df,col)
 print(f'Datatypes\n{df.dtypes}')
 
 # decision based on observation of amount of occurences, scaling down 3+ kids into "3" group, and 5+ families into 5
-# todo: maybe change the type so it says 3+ instead of 3 for clarity
-
+# maybe change the type so it says 3+ instead of 3 for clarity
 
 print(df['CNT_CHILDREN'].value_counts())
 df.loc[df['CNT_CHILDREN'] >= 3, 'CNT_CHILDREN'] = 3
@@ -204,13 +209,10 @@ df.loc[df['CNT_FAM_MEMBERS'] >= 5, 'CNT_FAM_MEMBERS'] = 5
 
 df['CNT_FAM_MEMBERS'] = df['CNT_FAM_MEMBERS'].astype(int)
 
-
-
 print(df.head())
 print(f'Datatypes\n{df.dtypes}')
 print(f'Shape{df.shape}')
 print(f'Missing data\n{df.isna().sum()}')
-
 
 ################################################### GRAPHS
 fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(14, 6))
@@ -291,5 +293,5 @@ iv_woe(df, 'dependency', 10, True)
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 22/09/2024
 # todo: test different bins for ages and salary
-# todo: make label columns create new ones for meaningful things such as age
-# todo: hot encoding income type, grouping up occupation type
+# todo: make label columns create new ones for meaningful things such as age groups
+# todo: IV_WOE scores
