@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import missingno as msno
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -121,26 +121,51 @@ print(df['cat_YEARS_EMPLOYED'].value_counts())
 print(df['MONTHS_BALANCE'].unique())
 df['MONTHS_BALANCE'] = abs(df['MONTHS_BALANCE'])
 
-######## label encoding (object > numerical values)
+print(df['OCCUPATION_TYPE'].unique())
+df.loc[(df['OCCUPATION_TYPE'] == 'Waiters/barmen staff') |
+(df['OCCUPATION_TYPE'] == 'Cleaning staff') |
+(df['OCCUPATION_TYPE'] == 'Cooking staff') |
+(df['OCCUPATION_TYPE'] == 'Low-skill Laborers') |
+(df['OCCUPATION_TYPE'] == 'Security staff') |
+(df['OCCUPATION_TYPE'] == 'Drivers') |
+(df['OCCUPATION_TYPE'] == 'Secretaries'), 'OCCUPATION_TYPE'
+] = 'Low position job'
+df.loc[(df['OCCUPATION_TYPE'] == 'Sales staff') |
+(df['OCCUPATION_TYPE'] == 'Accountants') |
+(df['OCCUPATION_TYPE'] == 'Laborers') |
+(df['OCCUPATION_TYPE'] == 'Core staff') |
+(df['OCCUPATION_TYPE'] == 'Private service staff') |
+(df['OCCUPATION_TYPE'] == 'Medicine staff') |
+(df['OCCUPATION_TYPE'] == 'HR staff') |
+(df['OCCUPATION_TYPE'] == 'Realty agents'), 'OCCUPATION_TYPE'
+] = 'Medium position job'
+df.loc[(df['OCCUPATION_TYPE'] == 'Managers') |
+(df['OCCUPATION_TYPE'] == 'High skill tech staff') |
+(df['OCCUPATION_TYPE'] == 'IT staff'), 'OCCUPATION_TYPE'
+] = 'High position job'
+print(df['OCCUPATION_TYPE'].unique())
 
+oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
+df['OCCUPATION_TYPE'] = oe.fit_transform(df[['OCCUPATION_TYPE']])
+######## label encoding (object > numerical values)
+print(df['OCCUPATION_TYPE'].unique())
 #print(df.head())
 df_encoded = df.copy()
+categorical_colsc = ['CODE_GENDER','FLAG_OWN_CAR','FLAG_OWN_REALTY']
 categorical_cols = df_encoded.select_dtypes(include='object').columns
-excluded_cols = ["AMT_INCOME_TOTAL", "NAME_INCOME_TYPE", "NAME_FAMILY_STATUS", "OCCUPATION_TYPE", "STATUS", "AGE_CATEGORY"]
-for col in categorical_cols:
-    if col not in excluded_cols:
-        le = LabelEncoder()
-        print(f"Unique values in {col}: {df_encoded[col].unique()}")
-        df_encoded[col] = le.fit_transform(df_encoded[col])
-        print(f"Unique values in {col}: {df_encoded[col].unique()}")
+excluded_cols = ["AMT_INCOME_TOTAL", "NAME_INCOME_TYPE", "NAME_FAMILY_STATUS", "STATUS", "AGE_CATEGORY"]
+for col in categorical_colsc:
+    le = LabelEncoder()
+    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+    df_encoded[col] = le.fit_transform(df_encoded[col])
+    print(f"Unique values in {col}: {df_encoded[col].unique()}")
 
 df = df_encoded
 
 # decision based on observation of amount of occurences, scaling down 3+ kids into "3" group, and 5+ families into 5
 # todo: maybe change the type so it says 3+ instead of 3 for clarity
 
-# and changing type to INT from Float
-print(df['CNT_CHILDREN'].unique())
+
 print(df['CNT_CHILDREN'].value_counts())
 df.loc[df['CNT_CHILDREN'] >= 3, 'CNT_CHILDREN'] = 3
 
