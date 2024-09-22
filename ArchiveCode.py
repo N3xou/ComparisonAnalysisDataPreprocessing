@@ -70,3 +70,7 @@ df = df[df['CNT_CHILDREN'].value_counts() >= threshold]
 # Display the filtered DataFrame
 print("\nFiltered DataFrame (Labels with < 0.1% of Total Removed):")
 print(df)
+## categorizing age manual
+#df.loc[(df['AGE_YEARS'] >= 18) & (df['AGE_YEARS'] <= 28), 'AGE_CATEGORY'] = 'young'
+#df.loc[(df['AGE_YEARS'] >= 29) & (df['AGE_YEARS'] <= 55), 'AGE_CATEGORY'] = 'mature'
+#df.loc[df['AGE_YEARS'] > 55, 'AGE_CATEGORY'] = 'elder'

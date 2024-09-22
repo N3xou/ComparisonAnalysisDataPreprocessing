@@ -92,12 +92,8 @@ df = get_category(df,'AMT_INCOME_TOTAL', 3, [ "low", "medium", "high"], qcut=Tru
 print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
 df['AGE_YEARS'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
-df['AGE_CATEGORY'] = None
-
 # categorizing age groups
-#df.loc[(df['AGE_YEARS'] >= 18) & (df['AGE_YEARS'] <= 28), 'AGE_CATEGORY'] = 'young'
-#df.loc[(df['AGE_YEARS'] >= 29) & (df['AGE_YEARS'] <= 55), 'AGE_CATEGORY'] = 'mature'
-#df.loc[df['AGE_YEARS'] > 55, 'AGE_CATEGORY'] = 'elder'
+
 #plt.figure()
 df['AGE_YEARS'].plot(kind='hist',bins = 20,density=True)
 #plt.show()
@@ -119,7 +115,7 @@ df['YEARS_EMPLOYED'].plot(kind='hist',bins=20,density=True)
 #plt.figure()
 #plt.show()
 df = get_category(df,'YEARS_EMPLOYED', 5, [ "lowest","low", "medium", "high","highest"], replace=False)
-
+print(df['cat_YEARS_EMPLOYED'].value_counts())
 
 
 print(df['MONTHS_BALANCE'].unique())
@@ -127,17 +123,16 @@ df['MONTHS_BALANCE'] = abs(df['MONTHS_BALANCE'])
 
 ######## label encoding (object > numerical values)
 
-
-
-
 #print(df.head())
 df_encoded = df.copy()
 categorical_cols = df_encoded.select_dtypes(include='object').columns
+excluded_cols = ["AMT_INCOME_TOTAL", "NAME_INCOME_TYPE", "NAME_FAMILY_STATUS", "OCCUPATION_TYPE", "STATUS", "AGE_CATEGORY"]
 for col in categorical_cols:
-    le = LabelEncoder()
-    #print(f"Unique values in {col}: {df_encoded[col].unique()}")
-    df_encoded[col] = le.fit_transform(df_encoded[col])
-    #print(f"Unique values in {col}: {df_encoded[col].unique()}")
+    if col not in excluded_cols:
+        le = LabelEncoder()
+        print(f"Unique values in {col}: {df_encoded[col].unique()}")
+        df_encoded[col] = le.fit_transform(df_encoded[col])
+        print(f"Unique values in {col}: {df_encoded[col].unique()}")
 
 df = df_encoded
 
@@ -154,13 +149,6 @@ print(df['CNT_FAM_MEMBERS'].value_counts())
 df.loc[df['CNT_FAM_MEMBERS'] >= 5, 'CNT_FAM_MEMBERS'] = 5
 
 df['CNT_FAM_MEMBERS'] = df['CNT_FAM_MEMBERS'].astype(int)
-
-
-
-
-
-
-
 
 # only value [1] ?
 print(df['FLAG_MOBIL'].unique())
@@ -247,8 +235,11 @@ def iv_woe(data, target, bins=10, show_woe=False):
 
 iv_woe(df, 'dependency', 10, True)
 
-# working on creating features and targget , lines 50 and 203
+
+# what is months balance needed for ?
 
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
-# 18/04/2024
+# 22/09/2024
 # todo: test different bins for ages and salary
+# todo: make label columns create new ones for meaningful things such as age
+# todo: hot encoding income type, grouping up occupation type
