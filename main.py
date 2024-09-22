@@ -11,6 +11,16 @@ applicationRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\a
 creditRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\credit_record.csv')
 df = pd.merge(applicationRecord, creditRecord, on='ID')
 
+def one_hot(df,feature,rank = 0):
+    pos = pd.get_dummies(df[feature], prefix=feature)
+    mode = df[feature].value_counts().index[rank]
+    biggest = feature + '_' + str(mode)
+    pos.drop([biggest], axis=1, inplace=True)
+    df.drop([feature], axis=1, inplace=True)
+    df = df.join(pos)
+    return df
+
+
 def get_category(df, col, binsnum, labels, qcut = False, replace = True):
     if replace:
         if pd.qcut:
@@ -63,6 +73,9 @@ print(f'Missing data\n{df.isna().sum()}')
 msno.matrix(df)
 #plt.show()
 
+
+print(df['FLAG_MOBIL'].unique())
+
 # dropping rows with missing data
 for column in df.columns:
     dropped_count = df[column].isna().sum()
@@ -74,21 +87,21 @@ df = df.dropna()
 
 print(f"Dropping duplicates, amount of unique rows: {df['ID'].nunique()}")
 df.drop_duplicates('ID', keep='last')
-
-# categorizing data into bins
+# dropping flag_mobil as all values equal 1
+df.drop(columns=['FLAG_MOBIL'], inplace=True)
+# bucketing data
 
 plt.figure()
-
-
 print(df['AMT_INCOME_TOTAL'].unique())
 df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL'].astype(object)
 df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL']/10000
 df['AMT_INCOME_TOTAL'].plot(kind='hist',bins=40,density=True)
 #plt.show()
-# Converting negative values to positive the following columns column
-df = get_category(df,'AMT_INCOME_TOTAL', 3, [ "low", "medium", "high"], qcut=True, replace=False)
-#print(df['AMT_INCOME_TOTAL'].value_counts())
 
+df = get_category(df,'AMT_INCOME_TOTAL', 3, [ "low", "medium", "high"], qcut=True, replace=False)
+print(df['cat_AMT_INCOME_TOTAL'].value_counts())
+
+# Converting negative values to positive the following columns column
 print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
 df['AGE_YEARS'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
@@ -147,25 +160,36 @@ print(df['OCCUPATION_TYPE'].unique())
 print(df['NAME_EDUCATION_TYPE'].unique())
 ####### Ordinal encoding
 oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
-df['OCCUPATION_TYPE'] = oe.fit_transform(df[['OCCUPATION_TYPE']])
-oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
-df['EDUCATION_TYPE'] = oe.fit_transform(df[['NAME_EDUCATION_TYPE']])
-print(df['EDUCATION_TYPE'].unique())
+df['OCCUPATION_TYPE'] = oe.fit_transform(df[['OCCUPATION_TYPE']]).astype(int)
 print(df['OCCUPATION_TYPE'].unique())
+oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
+df['EDUCATION_TYPE'] = oe.fit_transform(df[['NAME_EDUCATION_TYPE']]).astype(int)
+print(df['EDUCATION_TYPE'].unique())
+oe = OrdinalEncoder(categories=[['low', 'medium', 'high']])
+df['num_cat_AMT_INCOME_TOTAL'] = oe.fit_transform(df[['cat_AMT_INCOME_TOTAL']]).astype(int)
+print(df['cat_AMT_INCOME_TOTAL'].unique())
+print(df['num_cat_AMT_INCOME_TOTAL'].unique())
+oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
+df['num_cat_YEARS_EMPLOYED'] = oe.fit_transform(df[['cat_YEARS_EMPLOYED']]).astype(int)
+print(df['cat_YEARS_EMPLOYED'].unique())
+print(df['num_cat_YEARS_EMPLOYED'].unique())
 ######## label encoding (object > numerical values)
 
 #print(df.head())
 df_encoded = df.copy()
-categorical_colsc = ['CODE_GENDER','FLAG_OWN_CAR','FLAG_OWN_REALTY']
-categorical_cols = df_encoded.select_dtypes(include='object').columns
-excluded_cols = ["AMT_INCOME_TOTAL", "NAME_INCOME_TYPE", "NAME_FAMILY_STATUS", "STATUS", "AGE_CATEGORY"]
-for col in categorical_colsc:
+label_cols = ['CODE_GENDER','FLAG_OWN_CAR','FLAG_OWN_REALTY']
+for col in label_cols:
     le = LabelEncoder()
     print(f"Unique values in {col}: {df_encoded[col].unique()}")
     df_encoded[col] = le.fit_transform(df_encoded[col])
     print(f"Unique values in {col}: {df_encoded[col].unique()}")
 
 df = df_encoded
+######## one hot encoding
+onehot_cols = ['NAME_INCOME_TYPE','NAME_FAMILY_STATUS', 'NAME_HOUSING_TYPE', 'cat_AGE_YEARS']
+for col in onehot_cols:
+    df = one_hot(df,col)
+print(f'Datatypes\n{df.dtypes}')
 
 # decision based on observation of amount of occurences, scaling down 3+ kids into "3" group, and 5+ families into 5
 # todo: maybe change the type so it says 3+ instead of 3 for clarity
@@ -179,9 +203,6 @@ print(df['CNT_FAM_MEMBERS'].value_counts())
 df.loc[df['CNT_FAM_MEMBERS'] >= 5, 'CNT_FAM_MEMBERS'] = 5
 
 df['CNT_FAM_MEMBERS'] = df['CNT_FAM_MEMBERS'].astype(int)
-
-# only value [1] ?
-print(df['FLAG_MOBIL'].unique())
 
 
 
@@ -198,7 +219,6 @@ sns.scatterplot(x='ID', y='CNT_CHILDREN', data=df, ax=ax[0][0], color='orange')
 sns.scatterplot(x='ID', y='AMT_INCOME_TOTAL', data=df, ax=ax[0][1], color='orange')
 sns.scatterplot(x='ID', y='DAYS_BIRTH', data=df, ax=ax[0][2])
 sns.scatterplot(x='ID', y='DAYS_EMPLOYED', data=df, ax=ax[1][0])
-sns.scatterplot(x='ID', y='FLAG_MOBIL', data=df, ax=ax[1][1])
 sns.scatterplot(x='ID', y='FLAG_WORK_PHONE', data=df, ax=ax[1][2])
 sns.scatterplot(x='ID', y='FLAG_PHONE', data=df, ax=ax[2][0])
 sns.scatterplot(x='ID', y='FLAG_EMAIL', data=df, ax=ax[2][1])
