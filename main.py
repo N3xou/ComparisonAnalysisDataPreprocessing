@@ -144,11 +144,16 @@ df.loc[(df['OCCUPATION_TYPE'] == 'Managers') |
 (df['OCCUPATION_TYPE'] == 'IT staff'), 'OCCUPATION_TYPE'
 ] = 'High position job'
 print(df['OCCUPATION_TYPE'].unique())
-
+print(df['NAME_EDUCATION_TYPE'].unique())
+####### Ordinal encoding
 oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
 df['OCCUPATION_TYPE'] = oe.fit_transform(df[['OCCUPATION_TYPE']])
-######## label encoding (object > numerical values)
+oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
+df['EDUCATION_TYPE'] = oe.fit_transform(df[['NAME_EDUCATION_TYPE']])
+print(df['EDUCATION_TYPE'].unique())
 print(df['OCCUPATION_TYPE'].unique())
+######## label encoding (object > numerical values)
+
 #print(df.head())
 df_encoded = df.copy()
 categorical_colsc = ['CODE_GENDER','FLAG_OWN_CAR','FLAG_OWN_REALTY']
