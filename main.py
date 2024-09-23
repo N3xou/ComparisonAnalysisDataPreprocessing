@@ -21,7 +21,7 @@ def one_hot(df,feature,rank = 0):
     mode = df[feature].value_counts().index[rank]
     biggest = feature + '_' + str(mode)
     pos.drop([biggest], axis=1, inplace=True)
-    df.drop([feature], axis=1, inplace=True)
+    #df.drop([feature], axis=1, inplace=True)
     df = df.join(pos)
     return df
 
@@ -48,7 +48,34 @@ def get_category(df, col, binsnum, labels, qcut = False, replace = True):
         df = df.join(localdf[name])
         df[name] = df[name].astype(object)
     return df
+def iv_woe(data, target, bins=10, show_woe=False):
 
+    newDF, woeDF = pd.DataFrame(), pd.DataFrame()
+    cols = data.columns
+
+    for i in cols[~cols.isin([target])]:
+        #if (data[i].dtype.kind in 'bifc') and (
+        #        len(np.unique(data[i])) > 10):  # bifc =  boolean, integer, float, or complex.
+        #    binned_x = pd.qcut(data[i], bins, duplicates='drop')
+        #    d0 = pd.DataFrame({'x': binned_x, 'y': data[target]})
+        #else:
+        d0 = pd.DataFrame({'x': data[i], 'y': data[target]})
+        d0 = d0.astype({"x": str})
+        d = d0.groupby("x", as_index=False, dropna=False).agg({"y": ["count", "sum"]})
+        d.columns = ['Cutoff', 'N', 'Events']
+        d['% of Events'] = np.maximum(d['Events'], 0.5) / d['Events'].sum()
+        d['Non-Events'] = d['N'] - d['Events']
+        d['% of Non-Events'] = np.maximum(d['Non-Events'], 0.5) / d['Non-Events'].sum()
+        d['WoE'] = np.log(d['% of Non-Events'] / d['% of Events'])
+        d['IV'] = d['WoE'] * (d['% of Non-Events'] - d['% of Events'])
+        d.insert(loc=0, column='Variable', value=i)
+        print("Information value of " + i + " is " + str(round(d['IV'].sum(), 6)))
+        temp = pd.DataFrame({"Variable": [i], "IV": [d['IV'].sum()]}, columns=["Variable", "IV"])
+        newDF = pd.concat([newDF, temp], axis=0)
+        woeDF = pd.concat([woeDF, d], axis=0)
+        if show_woe == True:
+            print(d)
+    return newDF, woeDF
 ## feature engineering
 print(creditRecord['STATUS'].unique())
 
@@ -81,6 +108,7 @@ df = df.drop(columns=['dependency'])
 print(cpunt['dependency'].value_counts())
 print(df['target'].value_counts())
 print(cpunt['dependency'].value_counts(normalize=True))
+print(df['target'].value_counts(normalize=True))
 
 print(df.shape)
 print(cpunt.shape)
@@ -225,11 +253,11 @@ print(f'Datatypes\n{df.dtypes}')
 print(df['CNT_CHILDREN'].value_counts())
 df.loc[df['CNT_CHILDREN'] >= 3, 'CNT_CHILDREN'] = 3
 
-print(df['CNT_FAM_MEMBERS'].unique())
 print(df['CNT_FAM_MEMBERS'].value_counts())
 df.loc[df['CNT_FAM_MEMBERS'] >= 5, 'CNT_FAM_MEMBERS'] = 5
 
 df['CNT_FAM_MEMBERS'] = df['CNT_FAM_MEMBERS'].astype(int)
+print(df['CNT_FAM_MEMBERS'].value_counts())
 
 print(df.head())
 print(f'Datatypes\n{df.dtypes}')
@@ -275,39 +303,13 @@ df.drop(columns='FLAG_PHONE', axis=1)
 
 # calculting WOE and IV
 
-def iv_woe(data, target, bins=10, show_woe=False):
-    #Empty Dataframe
-    newDF, woeDF = pd.DataFrame(), pd.DataFrame()
+print(df.shape)
 
-    #Extract Column Names
-    cols = data.columns
-
-    for i in cols[~cols.isin([target])]:
-        if (data[i].dtype.kind in 'bifc') and (
-                len(np.unique(data[i])) > 10):  # bifc =  boolean, integer, float, or complex.
-            binned_x = pd.qcut(data[i], bins, duplicates='drop')
-            d0 = pd.DataFrame({'x': binned_x, 'y': data[target]})
-        else:
-            d0 = pd.DataFrame({'x': data[i], 'y': data[target]})
-        d0 = d0.astype({"x": str})
-        d = d0.groupby("x", as_index=False, dropna=False).agg({"y": ["count", "sum"]})
-        d.columns = ['Cutoff', 'N', 'Events']
-        d['% of Events'] = np.maximum(d['Events'], 0.5) / d['Events'].sum()
-        d['Non-Events'] = d['N'] - d['Events']
-        d['% of Non-Events'] = np.maximum(d['Non-Events'], 0.5) / d['Non-Events'].sum()
-        d['WoE'] = np.log(d['% of Non-Events'] / d['% of Events'])
-        d['IV'] = d['WoE'] * (d['% of Non-Events'] - d['% of Events'])
-        d.insert(loc=0, column='Variable', value=i)
-        print("Information value of " + i + " is " + str(round(d['IV'].sum(), 6)))
-        temp = pd.DataFrame({"Variable": [i], "IV": [d['IV'].sum()]}, columns=["Variable", "IV"])
-        newDF = pd.concat([newDF, temp], axis=0)
-        woeDF = pd.concat([woeDF, d], axis=0)
-        if show_woe == True:
-            print(d)
-    return newDF, woeDF
-
-
-iv_woe(df, 'dependency', 10, True)
+df_for_iv = df[['FLAG_OWN_CAR','FLAG_OWN_REALTY', 'CNT_CHILDREN', 'num_cat_AMT_INCOME_TOTAL', 'EDUCATION_TYPE', 'num_cat_YEARS_EMPLOYED',
+'FLAG_WORK_PHONE', 'FLAG_PHONE', 'FLAG_EMAIL', 'OCCUPATION_TYPE', 'CNT_FAM_MEMBERS', 'NAME_INCOME_TYPE',
+'NAME_FAMILY_STATUS', 'NAME_HOUSING_TYPE', 'cat_AGE_YEARS','target']]
+#, 'MONTHS_BALANCE'
+iv_woe(df_for_iv, 'target', show_woe=True)
 
 
 # what is months balance needed for ?
@@ -316,4 +318,4 @@ iv_woe(df, 'dependency', 10, True)
 # 22/09/2024
 # todo: test different bins for ages and salary
 # todo: make label columns create new ones for meaningful things such as age groups
-# todo: IV_WOE scores
+# todo: working on IV_WOE
