@@ -15,7 +15,11 @@ credit_agg = creditRecord.groupby('ID').agg({
 }).reset_index()
 
 df = pd.merge(applicationRecord, credit_agg, how='left', on='ID')
-
+df.rename(columns = {'CODE_GENDER':'Gender', 'FLAG_OWN_CAR' : 'Car', 'FLAG_OWN_REALTY' : 'Realty', 'CNT_CHILDREN' : 'Children_count',
+                     'AMT_INCOME_TOTAL' : 'Income', 'NAME_INCOME_TYPE' : 'Income_type', 'NAME_EDUCATION_TYPE':'Education_type',
+                     'NAME_FAMILY_STATUS' : 'Family_status', 'NAME_HOUSING_TYPE':'Housing_type','FLAG_MOBIL' : 'Mobile',
+                     'FLAG_WORK_PHONE' : 'Work_phone', 'FLAG_PHONE' : 'Phone', 'FLAG_EMAIL' : 'Email', 'OCCUPATION_TYPE': 'Occupation',
+                     'CNT_FAM_MEMBERS' : 'Family_count', 'MONTHS_BALANCE' : 'Starting_month'}, inplace=True)
 def one_hot(df,feature,rank = 0):
     pos = pd.get_dummies(df[feature], prefix=feature)
     mode = df[feature].value_counts().index[rank]
@@ -123,7 +127,7 @@ print(f'Missing data\n{df.isna().sum()}')
 msno.matrix(df)
 #plt.show()
 
-print(df['FLAG_MOBIL'].unique())
+print(df['Mobile'].unique())
 
 # dropping rows with missing data
 
@@ -138,21 +142,21 @@ df = df.dropna()
 print(f"Dropping duplicates, amount of unique rows: {df['ID'].nunique()}")
 df.drop_duplicates('ID', keep='last')
 
-# dropping flag_mobil as all values equal 1
+# dropping Mobile> as all values equal 1
 
-df.drop(columns=['FLAG_MOBIL'], inplace=True)
+df.drop(columns=['Mobile'], inplace=True)
 
 # bucketing data
 
 #plt.figure()
-print(df['AMT_INCOME_TOTAL'].unique())
-df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL'].astype(object)
-df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL']/10000
-df['AMT_INCOME_TOTAL'].plot(kind='hist',bins=40,density=True)
+print(df['Income'].unique())
+df['Income'] = df['Income'].astype(object)
+df['Income'] = df['Income']/10000
+df['Income'].plot(kind='hist',bins=40,density=True)
 #plt.show()
 
-df = get_category(df,'AMT_INCOME_TOTAL', 5, [ "lowest", "low", "medium", "high", "highest"], qcut=True, replace=False)
-print(df['cat_AMT_INCOME_TOTAL'].value_counts())
+df = get_category(df,'Income', 5, [ "lowest", "low", "medium", "high", "highest"], qcut=True, replace=False)
+print(df['cat_Income'].value_counts())
 
 # Converting negative values to positive the following columns column
 
@@ -183,46 +187,50 @@ df['YEARS_EMPLOYED'].plot(kind='hist',bins=20,density=True)
 df = get_category(df,'YEARS_EMPLOYED', 5, [ "lowest","low", "medium", "high","highest"], replace=False)
 print(df['cat_YEARS_EMPLOYED'].value_counts())
 
-print(df['MONTHS_BALANCE'].unique())
-df['MONTHS_BALANCE'] = abs(df['MONTHS_BALANCE'])
+print(df['Starting_month'].unique())
+df['Starting_month'] = abs(df['Starting_month'])
 
-print(df['OCCUPATION_TYPE'].unique())
-df.loc[(df['OCCUPATION_TYPE'] == 'Waiters/barmen staff') |
-(df['OCCUPATION_TYPE'] == 'Cleaning staff') |
-(df['OCCUPATION_TYPE'] == 'Cooking staff') |
-(df['OCCUPATION_TYPE'] == 'Low-skill Laborers') |
-(df['OCCUPATION_TYPE'] == 'Security staff') |
-(df['OCCUPATION_TYPE'] == 'Drivers') |
-(df['OCCUPATION_TYPE'] == 'Secretaries'), 'OCCUPATION_TYPE'
+print(df['Occupation'].unique())
+df.loc[(df['Occupation'] == 'Waiters/barmen staff') |
+(df['Occupation'] == 'Cleaning staff') |
+(df['Occupation'] == 'Cooking staff') |
+(df['Occupation'] == 'Low-skill Laborers') |
+(df['Occupation'] == 'Security staff') |
+(df['Occupation'] == 'Drivers') |
+(df['Occupation'] == 'Secretaries'), 'Occupation'
 ] = 'Low position job'
-df.loc[(df['OCCUPATION_TYPE'] == 'Sales staff') |
-(df['OCCUPATION_TYPE'] == 'Accountants') |
-(df['OCCUPATION_TYPE'] == 'Laborers') |
-(df['OCCUPATION_TYPE'] == 'Core staff') |
-(df['OCCUPATION_TYPE'] == 'Private service staff') |
-(df['OCCUPATION_TYPE'] == 'Medicine staff') |
-(df['OCCUPATION_TYPE'] == 'HR staff') |
-(df['OCCUPATION_TYPE'] == 'Realty agents'), 'OCCUPATION_TYPE'
+df.loc[(df['Occupation'] == 'Sales staff') |
+(df['Occupation'] == 'Accountants') |
+(df['Occupation'] == 'Laborers') |
+(df['Occupation'] == 'Core staff') |
+(df['Occupation'] == 'Private service staff') |
+(df['Occupation'] == 'Medicine staff') |
+(df['Occupation'] == 'HR staff') |
+(df['Occupation'] == 'Realty agents'), 'Occupation'
 ] = 'Medium position job'
-df.loc[(df['OCCUPATION_TYPE'] == 'Managers') |
-(df['OCCUPATION_TYPE'] == 'High skill tech staff') |
-(df['OCCUPATION_TYPE'] == 'IT staff'), 'OCCUPATION_TYPE'
+df.loc[(df['Occupation'] == 'Managers') |
+(df['Occupation'] == 'High skill tech staff') |
+(df['Occupation'] == 'IT staff'), 'Occupation'
 ] = 'High position job'
-print(df['OCCUPATION_TYPE'].unique())
-print(df['NAME_EDUCATION_TYPE'].unique())
+print(df['Occupation'].unique())
+print(df['Education_type'].unique())
+
+
+
+#df.loc[(df['Income_type'] == 'Student') | (df['Income_type'] == 'Pensioner'), 'Income_type'] = 'State servant'
 
 # Ordinal encoding
 
 oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
-df['OCCUPATION_TYPE'] = oe.fit_transform(df[['OCCUPATION_TYPE']]).astype(int)
-print(df['OCCUPATION_TYPE'].unique())
+df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
+print(df['Occupation'].unique())
 oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
-df['EDUCATION_TYPE'] = oe.fit_transform(df[['NAME_EDUCATION_TYPE']]).astype(int)
+df['EDUCATION_TYPE'] = oe.fit_transform(df[['Education_type']]).astype(int)
 print(df['EDUCATION_TYPE'].unique())
 #oe = OrdinalEncoder(categories=[['low', 'medium', 'high']])
-#df['num_cat_AMT_INCOME_TOTAL'] = oe.fit_transform(df[['cat_AMT_INCOME_TOTAL']]).astype(int)
-print(df['cat_AMT_INCOME_TOTAL'].unique())
-#print(df['num_cat_AMT_INCOME_TOTAL'].unique())
+#df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
+print(df['cat_Income'].unique())
+#print(df['num_cat_Income'].unique())
 oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
 df['num_cat_YEARS_EMPLOYED'] = oe.fit_transform(df[['cat_YEARS_EMPLOYED']]).astype(int)
 print(df['cat_YEARS_EMPLOYED'].unique())
@@ -232,7 +240,7 @@ print(df['num_cat_YEARS_EMPLOYED'].unique())
 
 print(df.head())
 df_encoded = df.copy()
-label_cols = ['CODE_GENDER','FLAG_OWN_CAR','FLAG_OWN_REALTY']
+label_cols = ['Gender','Car','Realty']
 for col in label_cols:
     le = LabelEncoder()
     print(f"Unique values in {col}: {df_encoded[col].unique()}")
@@ -242,7 +250,7 @@ df = df_encoded
 
 ######## one hot encoding
 
-onehot_cols = ['NAME_INCOME_TYPE','NAME_FAMILY_STATUS', 'NAME_HOUSING_TYPE', 'cat_AGE_YEARS']
+onehot_cols = ['Income_type','Family_status', 'Housing_type', 'cat_AGE_YEARS']
 for col in onehot_cols:
     df = one_hot(df,col)
 print(f'Datatypes\n{df.dtypes}')
@@ -250,14 +258,14 @@ print(f'Datatypes\n{df.dtypes}')
 # decision based on observation of amount of occurences, scaling down 3+ kids into "3" group, and 5+ families into 5
 # maybe change the type so it says 3+ instead of 3 for clarity
 
-print(df['CNT_CHILDREN'].value_counts())
-df.loc[df['CNT_CHILDREN'] >= 3, 'CNT_CHILDREN'] = 3
+print(df['Children_count'].value_counts())
+df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
 
-print(df['CNT_FAM_MEMBERS'].value_counts())
-df.loc[df['CNT_FAM_MEMBERS'] >= 5, 'CNT_FAM_MEMBERS'] = 5
+print(df['Family_count'].value_counts())
+df.loc[df['Family_count'] >= 5, 'Family_count'] = 5
 
-df['CNT_FAM_MEMBERS'] = df['CNT_FAM_MEMBERS'].astype(int)
-print(df['CNT_FAM_MEMBERS'].value_counts())
+df['Family_count'] = df['Family_count'].astype(int)
+print(df['Family_count'].value_counts())
 
 print(df.head())
 print(f'Datatypes\n{df.dtypes}')
@@ -270,13 +278,16 @@ print(f'Missing data\n{df.isna().sum()}')
 
 print(df.shape)
 
-df_for_iv = df[['FLAG_OWN_CAR','FLAG_OWN_REALTY', 'CNT_CHILDREN', 'cat_AMT_INCOME_TOTAL', 'EDUCATION_TYPE', 'num_cat_YEARS_EMPLOYED',
-'FLAG_WORK_PHONE', 'FLAG_PHONE', 'FLAG_EMAIL', 'OCCUPATION_TYPE', 'CNT_FAM_MEMBERS', 'NAME_INCOME_TYPE',
-'NAME_FAMILY_STATUS', 'NAME_HOUSING_TYPE', 'cat_AGE_YEARS','target']]
-#, 'MONTHS_BALANCE'
+df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'EDUCATION_TYPE', 'num_cat_YEARS_EMPLOYED',
+'Work_phone', 'Phone', 'Email', 'Occupation', 'Family_count', 'Income_type',
+'Family_status', 'Housing_type', 'cat_AGE_YEARS','target']]
+#, 'Starting_monthStarting_month'
 iv_woe(df_for_iv, 'target', show_woe=True)
 
+print(df['Income_type'].value_counts())
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
 # todo: test different bins for ages and salary
 # todo: working on IV_WOE
+# todo: work on bucketing the Income_type. currently there are 5 , student and pensioner only have 10 records each . possibly merge with one of
+# todo: the other two or drop
