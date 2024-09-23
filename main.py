@@ -69,11 +69,13 @@ cpunt = creditRecord.groupby('ID').count()
 #print(cpunt.shape)
 
 print(cpunt['dependency'].unique())
+
 cpunt.loc[cpunt['dependency'] > 0, 'dependency'] = 1
-#cpunt.loc[cpunt['dependency'] == 0, 'dependency'] = 0
 cpunt = cpunt[['dependency']] #reducing cpunt to 1 column
 df = pd.merge(df, cpunt, how='inner', on='ID')
 df['target'] = df['dependency']
+df = df.drop(columns=['dependency'])
+
 #df.loc[df['target'] == 'Yes', 'target'] = 1
 #df.loc[df['target'] == 'No', 'target'] = 0
 print(cpunt['dependency'].value_counts())
