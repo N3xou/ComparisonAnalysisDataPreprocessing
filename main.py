@@ -162,30 +162,30 @@ print(df['cat_Income'].value_counts())
 
 print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
-df['AGE_YEARS'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
+df['Age'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
 
 # categorizing age groups
 
 #plt.figure()
-df['AGE_YEARS'].plot(kind='hist',bins = 20,density=True)
+df['Age'].plot(kind='hist',bins = 20,density=True)
 #plt.show()
-df = get_category(df,'AGE_YEARS', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
+df = get_category(df,'Age', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
 #"young adult","elderly"
-df = df[df['AGE_YEARS'] >= 18] # dropping ages below 18
+df = df[df['Age'] >= 18] # dropping ages below 18
 print("Lowest age per age group")
-print(df.loc[df.groupby('cat_AGE_YEARS')['AGE_YEARS'].idxmin()][['cat_AGE_YEARS', 'AGE_YEARS']])
+print(df.loc[df.groupby('cat_Age')['Age'].idxmin()][['cat_Age', 'Age']])
 print("Highest age per age group")
-print(df.loc[df.groupby('cat_AGE_YEARS')['AGE_YEARS'].idxmax()][['cat_AGE_YEARS', 'AGE_YEARS']])
-print(df['cat_AGE_YEARS'].value_counts())
+print(df.loc[df.groupby('cat_Age')['Age'].idxmax()][['cat_Age', 'Age']])
+print(df['cat_Age'].value_counts())
 
 print(df['DAYS_EMPLOYED'].unique())
 df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
-df['YEARS_EMPLOYED'] = df['DAYS_EMPLOYED'] / 365
+df['Employment_years'] = df['DAYS_EMPLOYED'] / 365
 #plt.figure()
-df['YEARS_EMPLOYED'].plot(kind='hist',bins=20,density=True)
+df['Employment_years'].plot(kind='hist',bins=20,density=True)
 #plt.show()
-df = get_category(df,'YEARS_EMPLOYED', 5, [ "lowest","low", "medium", "high","highest"], replace=False)
-print(df['cat_YEARS_EMPLOYED'].value_counts())
+df = get_category(df,'Employment_years', 5, [ "lowest","low", "medium", "high","highest"], replace=False)
+print(df['cat_Employment_years'].value_counts())
 
 print(df['Starting_month'].unique())
 df['Starting_month'] = abs(df['Starting_month'])
@@ -225,16 +225,16 @@ oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High 
 df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
 print(df['Occupation'].unique())
 oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
-df['EDUCATION_TYPE'] = oe.fit_transform(df[['Education_type']]).astype(int)
-print(df['EDUCATION_TYPE'].unique())
+df['Education_type'] = oe.fit_transform(df[['Education_type']]).astype(int)
+print(df['Education_type'].unique())
 #oe = OrdinalEncoder(categories=[['low', 'medium', 'high']])
 #df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
 print(df['cat_Income'].unique())
 #print(df['num_cat_Income'].unique())
 oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
-df['num_cat_YEARS_EMPLOYED'] = oe.fit_transform(df[['cat_YEARS_EMPLOYED']]).astype(int)
-print(df['cat_YEARS_EMPLOYED'].unique())
-print(df['num_cat_YEARS_EMPLOYED'].unique())
+df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
+print(df['cat_Employment_years'].unique())
+print(df['num_cat_Employment_years'].unique())
 
 # Label encoding
 
@@ -250,7 +250,7 @@ df = df_encoded
 
 ######## one hot encoding
 
-onehot_cols = ['Income_type','Family_status', 'Housing_type', 'cat_AGE_YEARS']
+onehot_cols = ['Income_type','Family_status', 'Housing_type', 'cat_Age']
 for col in onehot_cols:
     df = one_hot(df,col)
 print(f'Datatypes\n{df.dtypes}')
@@ -278,9 +278,9 @@ print(f'Missing data\n{df.isna().sum()}')
 
 print(df.shape)
 
-df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'EDUCATION_TYPE', 'num_cat_YEARS_EMPLOYED',
+df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'Education_type', 'num_cat_Employment_years',
 'Work_phone', 'Phone', 'Email', 'Occupation', 'Family_count', 'Income_type',
-'Family_status', 'Housing_type', 'cat_AGE_YEARS','target']]
+'Family_status', 'Housing_type', 'cat_Age','target']]
 #, 'Starting_monthStarting_month'
 iv_woe(df_for_iv, 'target', show_woe=True)
 
