@@ -9,7 +9,12 @@ import seaborn as sns
 # Creating dataframe, merging two dataframes into one on ID
 applicationRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\application_record.csv')
 creditRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\credit_record.csv')
-df = pd.merge(applicationRecord, creditRecord, on='ID')
+credit_agg = creditRecord.groupby('ID').agg({
+    'MONTHS_BALANCE': 'min',  # Earliest month balance with max(worst) status
+    'STATUS': 'max'
+}).reset_index()
+
+df = pd.merge(applicationRecord, credit_agg, how='left', on='ID')
 
 def one_hot(df,feature,rank = 0):
     pos = pd.get_dummies(df[feature], prefix=feature)
@@ -45,24 +50,39 @@ def get_category(df, col, binsnum, labels, qcut = False, replace = True):
     return df
 
 ## feature engineering
+print(creditRecord['STATUS'].unique())
+
 creditRecord['dependency'] = None
 creditRecord.loc[creditRecord['STATUS'] == '2', 'dependency'] = 'Yes'
 creditRecord.loc[creditRecord['STATUS'] == '3', 'dependency'] = 'Yes'
 creditRecord.loc[creditRecord['STATUS'] == '4', 'dependency'] = 'Yes'
 creditRecord.loc[creditRecord['STATUS'] == '5', 'dependency'] = 'Yes'
 
+print(creditRecord['dependency'].unique())
+
+
 # 0 = safe, 1 = flag unsafe (to approve credit)
 
+
 cpunt = creditRecord.groupby('ID').count()
-cpunt.loc[cpunt['dependency'] > 0, 'dependency'] = 0
-cpunt.loc[cpunt['dependency'] == 0, 'dependency'] = 1
-cpunt = cpunt[['dependency']]
+#print(df.shape)
+#print(cpunt.shape)
+
+print(cpunt['dependency'].unique())
+cpunt.loc[cpunt['dependency'] > 0, 'dependency'] = 1
+#cpunt.loc[cpunt['dependency'] == 0, 'dependency'] = 0
+cpunt = cpunt[['dependency']] #reducing cpunt to 1 column
 df = pd.merge(df, cpunt, how='inner', on='ID')
 df['target'] = df['dependency']
-df.loc[df['target'] == 'Yes', 'target'] = 1
-df.loc[df['target'] == 'No', 'target'] = 0
+#df.loc[df['target'] == 'Yes', 'target'] = 1
+#df.loc[df['target'] == 'No', 'target'] = 0
 print(cpunt['dependency'].value_counts())
+print(df['target'].value_counts())
 print(cpunt['dependency'].value_counts(normalize=True))
+
+print(df.shape)
+print(cpunt.shape)
+print(df['target'].isnull().sum())
 
 # Looking into the dataframe and preprocessing data
 
