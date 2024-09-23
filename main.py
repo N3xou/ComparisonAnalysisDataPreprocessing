@@ -151,7 +151,7 @@ df['AMT_INCOME_TOTAL'] = df['AMT_INCOME_TOTAL']/10000
 df['AMT_INCOME_TOTAL'].plot(kind='hist',bins=40,density=True)
 #plt.show()
 
-df = get_category(df,'AMT_INCOME_TOTAL', 3, [ "low", "medium", "high"], qcut=True, replace=False)
+df = get_category(df,'AMT_INCOME_TOTAL', 5, [ "lowest", "low", "medium", "high", "highest"], qcut=True, replace=False)
 print(df['cat_AMT_INCOME_TOTAL'].value_counts())
 
 # Converting negative values to positive the following columns column
@@ -165,8 +165,8 @@ df['AGE_YEARS'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
 #plt.figure()
 df['AGE_YEARS'].plot(kind='hist',bins = 20,density=True)
 #plt.show()
-df = get_category(df,'AGE_YEARS', 5, [ "young adult","adult", "mature adult", "middle aged","elderly"], replace=False)
-
+df = get_category(df,'AGE_YEARS', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
+#"young adult","elderly"
 df = df[df['AGE_YEARS'] >= 18] # dropping ages below 18
 print("Lowest age per age group")
 print(df.loc[df.groupby('cat_AGE_YEARS')['AGE_YEARS'].idxmin()][['cat_AGE_YEARS', 'AGE_YEARS']])
@@ -219,10 +219,10 @@ print(df['OCCUPATION_TYPE'].unique())
 oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
 df['EDUCATION_TYPE'] = oe.fit_transform(df[['NAME_EDUCATION_TYPE']]).astype(int)
 print(df['EDUCATION_TYPE'].unique())
-oe = OrdinalEncoder(categories=[['low', 'medium', 'high']])
-df['num_cat_AMT_INCOME_TOTAL'] = oe.fit_transform(df[['cat_AMT_INCOME_TOTAL']]).astype(int)
+#oe = OrdinalEncoder(categories=[['low', 'medium', 'high']])
+#df['num_cat_AMT_INCOME_TOTAL'] = oe.fit_transform(df[['cat_AMT_INCOME_TOTAL']]).astype(int)
 print(df['cat_AMT_INCOME_TOTAL'].unique())
-print(df['num_cat_AMT_INCOME_TOTAL'].unique())
+#print(df['num_cat_AMT_INCOME_TOTAL'].unique())
 oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
 df['num_cat_YEARS_EMPLOYED'] = oe.fit_transform(df[['cat_YEARS_EMPLOYED']]).astype(int)
 print(df['cat_YEARS_EMPLOYED'].unique())
@@ -265,57 +265,18 @@ print(f'Shape{df.shape}')
 print(f'Missing data\n{df.isna().sum()}')
 
 ################################################### GRAPHS
-fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(14, 6))
-
-sns.scatterplot(x='ID', y='CNT_CHILDREN', data=df, ax=ax[0][0], color='orange')
-sns.scatterplot(x='ID', y='AMT_INCOME_TOTAL', data=df, ax=ax[0][1], color='orange')
-sns.scatterplot(x='ID', y='DAYS_BIRTH', data=df, ax=ax[0][2])
-sns.scatterplot(x='ID', y='DAYS_EMPLOYED', data=df, ax=ax[1][0])
-sns.scatterplot(x='ID', y='FLAG_WORK_PHONE', data=df, ax=ax[1][2])
-sns.scatterplot(x='ID', y='FLAG_PHONE', data=df, ax=ax[2][0])
-sns.scatterplot(x='ID', y='FLAG_EMAIL', data=df, ax=ax[2][1])
-sns.scatterplot(x='ID', y='CNT_FAM_MEMBERS', data=df, ax=ax[2][2], color='orange')
-
-#plt.show()
-
-q_hi = df['CNT_CHILDREN'].quantile(0.999)
-q_low = df['CNT_CHILDREN'].quantile(0.001)
-df = df[(df['CNT_CHILDREN'] > q_low) & (df['CNT_CHILDREN'] < q_hi)]
-
-q_hi = df['AMT_INCOME_TOTAL'].quantile(0.999)
-q_low = df['AMT_INCOME_TOTAL'].quantile(0.001)
-df = df[(df['AMT_INCOME_TOTAL'] > q_low) & (df['AMT_INCOME_TOTAL'] < q_hi)]
-
-q_hi = df['CNT_FAM_MEMBERS'].quantile(0.999)
-q_low = df['CNT_FAM_MEMBERS'].quantile(0.001)
-df = df[(df['CNT_FAM_MEMBERS'] > q_low) & (df['CNT_FAM_MEMBERS'] < q_hi)]
-
-# status 1 = bad, status 0 = good . status=fraud
-df['STATUS'] = df['STATUS'].replace({'C': 0, 'X': 0})
-df['STATUS'] = df['STATUS'].astype('int')
-df['STATUS'] = df['STATUS'].apply(lambda x: 1 if x >= 2 else 0)
-
-print(df['STATUS'].value_counts(normalize=True))
-
-# drop or leave for the future ?
-df.drop(columns='FLAG_PHONE', axis=1)
-
 
 # calculting WOE and IV
 
 print(df.shape)
 
-df_for_iv = df[['FLAG_OWN_CAR','FLAG_OWN_REALTY', 'CNT_CHILDREN', 'num_cat_AMT_INCOME_TOTAL', 'EDUCATION_TYPE', 'num_cat_YEARS_EMPLOYED',
+df_for_iv = df[['FLAG_OWN_CAR','FLAG_OWN_REALTY', 'CNT_CHILDREN', 'cat_AMT_INCOME_TOTAL', 'EDUCATION_TYPE', 'num_cat_YEARS_EMPLOYED',
 'FLAG_WORK_PHONE', 'FLAG_PHONE', 'FLAG_EMAIL', 'OCCUPATION_TYPE', 'CNT_FAM_MEMBERS', 'NAME_INCOME_TYPE',
 'NAME_FAMILY_STATUS', 'NAME_HOUSING_TYPE', 'cat_AGE_YEARS','target']]
 #, 'MONTHS_BALANCE'
 iv_woe(df_for_iv, 'target', show_woe=True)
 
-
-# what is months balance needed for ?
-
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
-# 22/09/2024
+# 23/09/2024
 # todo: test different bins for ages and salary
-# todo: make label columns create new ones for meaningful things such as age groups
 # todo: working on IV_WOE

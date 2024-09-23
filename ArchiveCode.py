@@ -74,3 +74,30 @@ print(df)
 #df.loc[(df['AGE_YEARS'] >= 18) & (df['AGE_YEARS'] <= 28), 'AGE_CATEGORY'] = 'young'
 #df.loc[(df['AGE_YEARS'] >= 29) & (df['AGE_YEARS'] <= 55), 'AGE_CATEGORY'] = 'mature'
 #df.loc[df['AGE_YEARS'] > 55, 'AGE_CATEGORY'] = 'elder'
+
+
+# graphs?
+fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(14, 6))
+
+sns.scatterplot(x='ID', y='CNT_CHILDREN', data=df, ax=ax[0][0], color='orange')
+sns.scatterplot(x='ID', y='AMT_INCOME_TOTAL', data=df, ax=ax[0][1], color='orange')
+sns.scatterplot(x='ID', y='DAYS_BIRTH', data=df, ax=ax[0][2])
+sns.scatterplot(x='ID', y='DAYS_EMPLOYED', data=df, ax=ax[1][0])
+sns.scatterplot(x='ID', y='FLAG_WORK_PHONE', data=df, ax=ax[1][2])
+sns.scatterplot(x='ID', y='FLAG_PHONE', data=df, ax=ax[2][0])
+sns.scatterplot(x='ID', y='FLAG_EMAIL', data=df, ax=ax[2][1])
+sns.scatterplot(x='ID', y='CNT_FAM_MEMBERS', data=df, ax=ax[2][2], color='orange')
+
+#plt.show()
+
+q_hi = df['CNT_CHILDREN'].quantile(0.999)
+q_low = df['CNT_CHILDREN'].quantile(0.001)
+df = df[(df['CNT_CHILDREN'] > q_low) & (df['CNT_CHILDREN'] < q_hi)]
+
+q_hi = df['AMT_INCOME_TOTAL'].quantile(0.999)
+q_low = df['AMT_INCOME_TOTAL'].quantile(0.001)
+df = df[(df['AMT_INCOME_TOTAL'] > q_low) & (df['AMT_INCOME_TOTAL'] < q_hi)]
+
+q_hi = df['CNT_FAM_MEMBERS'].quantile(0.999)
+q_low = df['CNT_FAM_MEMBERS'].quantile(0.001)
+df = df[(df['CNT_FAM_MEMBERS'] > q_low) & (df['CNT_FAM_MEMBERS'] < q_hi)]
