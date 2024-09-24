@@ -3,13 +3,21 @@ import pandas as pd
 import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
-from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, OneHotEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 # Creating dataframe, merging two dataframes into one on ID
-applicationRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\application_record.csv')
-creditRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\credit_record.csv')
+from pathlib import Path
+
+# Use Pathlib to handle file paths dynamically
+path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')  # Replace with your base directory
+
+# Read data using Pathlib
+applicationRecord = pd.read_csv(path / 'application_record.csv')
+creditRecord = pd.read_csv(path / 'credit_record.csv')
+#applicationRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\application_record.csv')
+#creditRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\credit_record.csv')
 credit_agg = creditRecord.groupby('ID').agg({
     'MONTHS_BALANCE': 'min',  # Earliest month balance with max(worst) status
     'STATUS': 'max'
