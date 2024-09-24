@@ -4,8 +4,10 @@ import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, OneHotEncoder
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 # Creating dataframe, merging two dataframes into one on ID
 from pathlib import Path
@@ -293,14 +295,57 @@ df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'Educa
 #, 'Starting_monthStarting_month'
 ivWoe(df_for_iv, 'target', show_woe=True)
 
+# LogisticRegression
 X = df_for_iv.drop(columns = ['target'])
-Y = df_for_iv('target')
+Y = df_for_iv['target']
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
 X_train_smote, y_train_smote = SMOTE().fit_resample(X_train, y_train)
 
+reg = LogisticRegression(solver='liblinear', random_state=1)  # todo: adjust parameters
+reg.fit(X_train, y_train)
+y_pred = reg.predict(X_test)
+y_pred_proba = reg.predict_proba(X_test)[:, 1]
 
+conf_matrix = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:\n", conf_matrix)
 
+# Classification Report
+class_report = classification_report(y_test, y_pred)
+print("\nClassification Report:\n", class_report)
+
+# Step 4: Confusion Matrix Plot
+plt.figure(figsize=(6, 4))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', cbar=False)
+plt.title("Confusion Matrix")
+plt.ylabel("True label")
+plt.xlabel("Predicted label")
+plt.show()
+
+# Step 5: ROC Curve
+fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
+roc_auc = auc(fpr, tpr)
+
+plt.figure(figsize=(6, 4))
+plt.plot(fpr, tpr, label='Logistic Regression (AUC = %0.2f)' % roc_auc)
+plt.plot([0, 1], [0, 1], 'r--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC)')
+plt.legend(loc="lower right")
+plt.show()
+
+# Step 6: Precision-Recall Curve
+precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
+
+plt.figure(figsize=(6, 4))
+plt.plot(recall, precision, label='Precision-Recall curve')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.show()
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
 
