@@ -12,14 +12,11 @@ from sklearn.model_selection import train_test_split
 # Creating dataframe, merging two dataframes into one on ID
 from pathlib import Path
 
-# Use Pathlib to handle file paths dynamically
-path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')  # Replace with your base directory
 
-# Read data using Pathlib
+path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')  # Replace with your base directory
 applicationRecord = pd.read_csv(path / 'application_record.csv')
 creditRecord = pd.read_csv(path / 'credit_record.csv')
-#applicationRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\application_record.csv')
-#creditRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\credit_record.csv')
+
 credit_agg = creditRecord.groupby('ID').agg({
     'MONTHS_BALANCE': 'min',  # Earliest month balance with max(worst) status
     'STATUS': 'max'
@@ -238,8 +235,8 @@ print(df['Occupation'].unique())
 oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
 df['Education_type'] = oe.fit_transform(df[['Education_type']]).astype(int)
 print(df['Education_type'].unique())
-#oe = OrdinalEncoder(categories=[['low', 'medium', 'high']])
-#df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
+oe = OrdinalEncoder(categories=[['lowest','low', 'medium', 'high', 'highest']])
+df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
 print(df['cat_Income'].unique())
 #print(df['num_cat_Income'].unique())
 oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
@@ -251,7 +248,7 @@ print(df['num_cat_Employment_years'].unique())
 
 print(df.head())
 df_encoded = df.copy()
-label_cols = ['Gender','Car','Realty']
+label_cols = ['Gender','Car','Realty', 'cat_Employment_years']
 for col in label_cols:
     le = LabelEncoder()
     print(f"Unique values in {col}: {df_encoded[col].unique()}")
@@ -296,9 +293,10 @@ df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'Educa
 ivWoe(df_for_iv, 'target', show_woe=True)
 
 # LogisticRegression
-X = df_for_iv.drop(columns = ['target'])
-Y = df_for_iv['target']
-
+X = df.drop(columns = ['target', 'Employment_years', 'cat_Age', 'Age', 'STATUS', 'DAYS_EMPLOYED', 'DAYS_BIRTH',
+                       'Housing_type', 'Family_status', 'Income_type', 'ID', 'Income', 'cat_Age','cat_Income','cat_Employment_years'])
+Y = df['target']
+print(X.shape)
 X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
 X_train_smote, y_train_smote = SMOTE().fit_resample(X_train, y_train)
 
