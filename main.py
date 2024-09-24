@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import missingno as msno
+from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -284,7 +285,10 @@ df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'Educa
 #, 'Starting_monthStarting_month'
 iv_woe(df_for_iv, 'target', show_woe=True)
 
-print(df['Income_type'].value_counts())
+X = df_for_iv.drop(columns = ['target'])
+Y = df_for_iv('target')
+X_smote,Y_smote = SMOTE().fit_sample(X,Y)
+X_smote = pd.DataFrame(X_smote, columns = X.columns)
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
 # todo: test different bins for ages and salary
