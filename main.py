@@ -6,7 +6,7 @@ from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from sklearn.model_selection import train_test_split
 # Creating dataframe, merging two dataframes into one on ID
 applicationRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\application_record.csv')
 creditRecord = pd.read_csv(r'C:\Users\Yami\PycharmProjects\pythonProject1\credit_record.csv')
@@ -289,9 +289,16 @@ X = df_for_iv.drop(columns = ['target'])
 Y = df_for_iv('target')
 X_smote,Y_smote = SMOTE().fit_sample(X,Y)
 X_smote = pd.DataFrame(X_smote, columns = X.columns)
+
+X_train, X_test, y_train, y_test = train_test_split(X_smote,Y_smote,
+                                                    stratify=Y_smote, test_size=0.25,
+                                                    random_state = 555)
+
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
-# todo: test different bins for ages and salary
-# todo: working on IV_WOE
+
 # todo: work on bucketing the Income_type. currently there are 5 , student and pensioner only have 10 records each . possibly merge with one of
 # todo: the other two or drop
+
+# iv woe further work
+# test different bins for ages and salary
