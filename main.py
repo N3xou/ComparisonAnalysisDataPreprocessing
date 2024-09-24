@@ -21,7 +21,7 @@ df.rename(columns = {'CODE_GENDER':'Gender', 'FLAG_OWN_CAR' : 'Car', 'FLAG_OWN_R
                      'NAME_FAMILY_STATUS' : 'Family_status', 'NAME_HOUSING_TYPE':'Housing_type','FLAG_MOBIL' : 'Mobile',
                      'FLAG_WORK_PHONE' : 'Work_phone', 'FLAG_PHONE' : 'Phone', 'FLAG_EMAIL' : 'Email', 'OCCUPATION_TYPE': 'Occupation',
                      'CNT_FAM_MEMBERS' : 'Family_count', 'MONTHS_BALANCE' : 'Starting_month'}, inplace=True)
-def one_hot(df,feature,rank = 0):
+def oneHot(df, feature, rank = 0):
     pos = pd.get_dummies(df[feature], prefix=feature)
     mode = df[feature].value_counts().index[rank]
     biggest = feature + '_' + str(mode)
@@ -30,9 +30,9 @@ def one_hot(df,feature,rank = 0):
     df = df.join(pos)
     return df
 
-def get_category(df, col, binsnum, labels, qcut = False, replace = True):
+def getCategory(df, col, binsnum, labels, qcut = False, replace = True):
     if replace:
-        if pd.qcut:
+        if qcut:
             # Quantile cut
             df[col] = pd.qcut(df[col], q=binsnum, labels=labels)
         else:
@@ -53,7 +53,7 @@ def get_category(df, col, binsnum, labels, qcut = False, replace = True):
         df = df.join(localdf[name])
         df[name] = df[name].astype(object)
     return df
-def iv_woe(data, target, bins=10, show_woe=False):
+def ivWoe(data, target, bins=10, show_woe=False):
 
     newDF, woeDF = pd.DataFrame(), pd.DataFrame()
     cols = data.columns
@@ -156,7 +156,7 @@ df['Income'] = df['Income']/10000
 df['Income'].plot(kind='hist',bins=40,density=True)
 #plt.show()
 
-df = get_category(df,'Income', 5, [ "lowest", "low", "medium", "high", "highest"], qcut=True, replace=False)
+df = getCategory(df, 'Income', 5, ["lowest", "low", "medium", "high", "highest"], qcut=True, replace=False)
 print(df['cat_Income'].value_counts())
 
 # Converting negative values to positive the following columns column
@@ -170,7 +170,7 @@ df['Age'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
 #plt.figure()
 df['Age'].plot(kind='hist',bins = 20,density=True)
 #plt.show()
-df = get_category(df,'Age', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
+df = getCategory(df, 'Age', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
 #"young adult","elderly"
 df = df[df['Age'] >= 18] # dropping ages below 18
 print("Lowest age per age group")
@@ -185,7 +185,7 @@ df['Employment_years'] = df['DAYS_EMPLOYED'] / 365
 #plt.figure()
 df['Employment_years'].plot(kind='hist',bins=20,density=True)
 #plt.show()
-df = get_category(df,'Employment_years', 5, [ "lowest","low", "medium", "high","highest"], replace=False)
+df = getCategory(df, 'Employment_years', 5, ["lowest", "low", "medium", "high", "highest"], replace=False)
 print(df['cat_Employment_years'].value_counts())
 
 print(df['Starting_month'].unique())
@@ -253,7 +253,7 @@ df = df_encoded
 
 onehot_cols = ['Income_type','Family_status', 'Housing_type', 'cat_Age']
 for col in onehot_cols:
-    df = one_hot(df,col)
+    df = oneHot(df, col)
 print(f'Datatypes\n{df.dtypes}')
 
 # decision based on observation of amount of occurences, scaling down 3+ kids into "3" group, and 5+ families into 5
@@ -283,16 +283,15 @@ df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'Educa
 'Work_phone', 'Phone', 'Email', 'Occupation', 'Family_count', 'Income_type',
 'Family_status', 'Housing_type', 'cat_Age','target']]
 #, 'Starting_monthStarting_month'
-iv_woe(df_for_iv, 'target', show_woe=True)
+ivWoe(df_for_iv, 'target', show_woe=True)
 
 X = df_for_iv.drop(columns = ['target'])
 Y = df_for_iv('target')
-X_smote,Y_smote = SMOTE().fit_sample(X,Y)
-X_smote = pd.DataFrame(X_smote, columns = X.columns)
 
-X_train, X_test, y_train, y_test = train_test_split(X_smote,Y_smote,
-                                                    stratify=Y_smote, test_size=0.25,
-                                                    random_state = 555)
+X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
+X_train_smote, y_train_smote = SMOTE().fit_resample(X_train, y_train)
+
+
 
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
