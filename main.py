@@ -303,12 +303,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=
 
 X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
 
-reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C='0.1')  # todo: adjust parameters
+reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)  # todo: adjust parameters
 
 reg.fit(X_train_smote, y_train_smote)
 y_pred = reg.predict(X_test)
 y_pred_proba = reg.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.45).astype(int)
+y_pred_proba_adj = (y_pred_proba > 0.35).astype(int)
 
 # improving the model
 #param_grid = {'C': [0.1, 1, 10, 100], 'solver': ['liblinear', 'saga']}
@@ -321,6 +321,13 @@ y_pred_proba_adj = (y_pred_proba > 0.45).astype(int)
 
 #y_grid_proba = grid.predict_proba(X_test)[:, 1]
 #y_grid = (y_grid_proba > 0.5).astype(int)
+
+#precision, recall, thresholds = precision_recall_curve(y_test, y_pred_proba)
+#for i, val in enumerate(recall):
+#    if val >= 0.1:  # or your desired recall level
+#        print(f"Threshold: {thresholds[i]}, Precision: {precision[i]}")
+# visualization
+
 #conf_matrix2 = confusion_matrix(y_test, y_grid)
 #conf_matrix_normalized2 = conf_matrix2.astype('float') / conf_matrix2.sum(axis=1)[:, np.newaxis]
 
@@ -333,7 +340,7 @@ class_report = classification_report(y_test, y_pred)
 print("\nClassification Report:\n", class_report)
 
 plt.figure(figsize=(6, 4))
-heatmap_matrix = sns.heatmap(conf_matrix_normalized2, annot=True, fmt='.2f', cmap='Blues', cbar=True)
+heatmap_matrix = sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True)
 plt.title("Confusion Matrix")
 plt.ylabel("True label")
 plt.xlabel("Predicted label")
@@ -371,5 +378,7 @@ plt.show()
 # todo: work on bucketing the Income_type. currently there are 5 , student and pensioner only have 10 records each . possibly merge with one of
 # todo: the other two or drop
 # todo: iv/woe + logisticReg
+
+# todo: check different C values in gridsearch range 0.1-1
 # iv woe further wor
 # test different bins for ages and salary
