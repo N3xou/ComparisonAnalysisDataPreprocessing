@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 # Creating dataframe, merging two dataframes into one on ID
 from pathlib import Path
 
+from unicodedata import normalize
 
 path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')  # Replace with your base directory
 applicationRecord = pd.read_csv(path / 'application_record.csv')
@@ -314,7 +315,7 @@ print("\nClassification Report:\n", class_report)
 
 # Step 4: Confusion Matrix Plot
 plt.figure(figsize=(6, 4))
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', cbar=False)
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', cbar=False, normalize = True)
 plt.title("Confusion Matrix")
 plt.ylabel("True label")
 plt.xlabel("Predicted label")
@@ -349,6 +350,6 @@ plt.show()
 
 # todo: work on bucketing the Income_type. currently there are 5 , student and pensioner only have 10 records each . possibly merge with one of
 # todo: the other two or drop
-
-# iv woe further work
+# todo: iv/woe + logisticReg
+# iv woe further wor
 # test different bins for ages and salary
