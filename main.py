@@ -133,7 +133,7 @@ print(df.head())
 print(f'Datatypes\n{df.dtypes}')
 print(f'Shape{df.shape}')
 print(f'Missing data\n{df.isna().sum()}')
-msno.matrix(df)
+#msno.matrix(df)
 #plt.show()
 
 print(df['Mobile'].unique())
@@ -302,13 +302,17 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=
 
 X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
 
-reg = LogisticRegression(solver='liblinear', random_state=1)  # todo: adjust parameters
+reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced')  # todo: adjust parameters
+
 reg.fit(X_train_smote, y_train_smote)
 y_pred = reg.predict(X_test)
 y_pred_proba = reg.predict_proba(X_test)[:, 1]
+y_pred_proba_adj = (y_pred_proba > 0.45).astype(int)
+
+# improving the model
 
 
-conf_matrix = confusion_matrix(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred_proba_adj)
 conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
 #conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)
 print("Confusion Matrix:\n", conf_matrix)
@@ -347,6 +351,8 @@ plt.xlabel('Recall')
 plt.ylabel('Precision')
 plt.title('Precision-Recall Curve')
 plt.show()
+
+
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
 
