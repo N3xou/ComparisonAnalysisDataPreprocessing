@@ -302,11 +302,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=
 X_train_smote, y_train_smote = SMOTE().fit_resample(X_train, y_train)
 
 reg = LogisticRegression(solver='liblinear', random_state=1)  # todo: adjust parameters
-reg.fit(X_train, y_train)
+reg.fit(X_train_smote, y_train_smote)
 y_pred = reg.predict(X_test)
 y_pred_proba = reg.predict_proba(X_test)[:, 1]
 
+
 conf_matrix = confusion_matrix(y_test, y_pred)
+conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)
 print("Confusion Matrix:\n", conf_matrix)
 
 # Classification Report
@@ -315,7 +317,7 @@ print("\nClassification Report:\n", class_report)
 
 # Step 4: Confusion Matrix Plot
 plt.figure(figsize=(6, 4))
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', cbar=False, normalize = True)
+sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=False)
 plt.title("Confusion Matrix")
 plt.ylabel("True label")
 plt.xlabel("Predicted label")
