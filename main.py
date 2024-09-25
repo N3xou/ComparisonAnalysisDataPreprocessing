@@ -299,7 +299,8 @@ X = df.drop(columns = ['target', 'Employment_years', 'cat_Age', 'Age', 'STATUS',
 Y = df['target']
 print(X.shape)
 X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
-X_train_smote, y_train_smote = SMOTE().fit_resample(X_train, y_train)
+
+X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
 
 reg = LogisticRegression(solver='liblinear', random_state=1)  # todo: adjust parameters
 reg.fit(X_train_smote, y_train_smote)
@@ -308,22 +309,20 @@ y_pred_proba = reg.predict_proba(X_test)[:, 1]
 
 
 conf_matrix = confusion_matrix(y_test, y_pred)
-conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)
+conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
+#conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)
 print("Confusion Matrix:\n", conf_matrix)
 
-# Classification Report
 class_report = classification_report(y_test, y_pred)
 print("\nClassification Report:\n", class_report)
 
-# Step 4: Confusion Matrix Plot
 plt.figure(figsize=(6, 4))
-sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=False)
+heatmap_matrix = sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True)
 plt.title("Confusion Matrix")
 plt.ylabel("True label")
 plt.xlabel("Predicted label")
 plt.show()
 
-# Step 5: ROC Curve
 fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
 roc_auc = auc(fpr, tpr)
 
@@ -332,6 +331,7 @@ plt.plot(fpr, tpr, label='Logistic Regression (AUC = %0.2f)' % roc_auc)
 plt.plot([0, 1], [0, 1], 'r--')
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
+
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('Receiver Operating Characteristic (ROC)')
