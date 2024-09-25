@@ -308,7 +308,7 @@ reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balan
 reg.fit(X_train_smote, y_train_smote)
 y_pred = reg.predict(X_test)
 y_pred_proba = reg.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.35).astype(int)
+y_pred_proba_adj = (y_pred_proba > 0.26).astype(int)
 
 # improving the model
 #param_grid = {'C': [0.1, 1, 10, 100], 'solver': ['liblinear', 'saga']}
@@ -377,7 +377,8 @@ plt.show()
 
 # todo: work on bucketing the Income_type. currently there are 5 , student and pensioner only have 10 records each . possibly merge with one of
 # todo: the other two or drop
-# todo: iv/woe + logisticReg
+
+# todo: needs work - iv/woe +  9/25/2024 working on - logisticReg
 
 # todo: check different C values in gridsearch range 0.1-1
 # iv woe further wor
