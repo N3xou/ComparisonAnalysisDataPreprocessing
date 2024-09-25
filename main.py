@@ -8,9 +8,10 @@ from sklearn.metrics import confusion_matrix, classification_report, roc_curve, 
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split,GridSearchCV
 # Creating dataframe, merging two dataframes into one on ID
 from pathlib import Path
+
 
 from unicodedata import normalize
 
@@ -302,7 +303,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=
 
 X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
 
-reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced')  # todo: adjust parameters
+reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C='0.1')  # todo: adjust parameters
 
 reg.fit(X_train_smote, y_train_smote)
 y_pred = reg.predict(X_test)
@@ -310,7 +311,18 @@ y_pred_proba = reg.predict_proba(X_test)[:, 1]
 y_pred_proba_adj = (y_pred_proba > 0.45).astype(int)
 
 # improving the model
+#param_grid = {'C': [0.1, 1, 10, 100], 'solver': ['liblinear', 'saga']}
+#grid = GridSearchCV(LogisticRegression(random_state=1, max_iter=3000), param_grid, scoring='f1', cv =5 )
+#grid.fit(X_train_smote, y_train_smote)
+#best_params = grid.best_params_
+#best_score = grid.best_score_
+#print(f'Best parameters: {best_params}')
+#print(f'Best score: {best_score}')
 
+#y_grid_proba = grid.predict_proba(X_test)[:, 1]
+#y_grid = (y_grid_proba > 0.5).astype(int)
+#conf_matrix2 = confusion_matrix(y_test, y_grid)
+#conf_matrix_normalized2 = conf_matrix2.astype('float') / conf_matrix2.sum(axis=1)[:, np.newaxis]
 
 conf_matrix = confusion_matrix(y_test, y_pred_proba_adj)
 conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
@@ -321,7 +333,7 @@ class_report = classification_report(y_test, y_pred)
 print("\nClassification Report:\n", class_report)
 
 plt.figure(figsize=(6, 4))
-heatmap_matrix = sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True)
+heatmap_matrix = sns.heatmap(conf_matrix_normalized2, annot=True, fmt='.2f', cmap='Blues', cbar=True)
 plt.title("Confusion Matrix")
 plt.ylabel("True label")
 plt.xlabel("Predicted label")
