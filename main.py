@@ -386,6 +386,21 @@ plot_confusion_matrix(confusion_matrix(y_test,y_predict),
                       classes=class_names, normalize = True,
                       title='Normalized Confusion Matrix: CART')
 
+
+# random forest
+model = RandomForestClassifier(n_estimators=250,
+                              max_depth=12,
+                              min_samples_leaf=16
+                              )
+model.fit(X_train, y_train)
+y_predict = model.predict(X_test)
+
+print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
+print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
+
+plot_confusion_matrix(confusion_matrix(y_test,y_predict),
+                      classes=class_names, normalize = True,
+                      title='Normalized Confusion Matrix: Ramdom Forests')
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
 
