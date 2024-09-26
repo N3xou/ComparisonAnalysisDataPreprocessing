@@ -3,8 +3,10 @@ import pandas as pd
 import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, OneHotEncoder
-from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, \
+    accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
@@ -398,6 +400,7 @@ y_predict = model.predict(X_test)
 print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
 print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
 
+# to create function
 plot_confusion_matrix(confusion_matrix(y_test,y_predict),
                       classes=class_names, normalize = True,
                       title='Normalized Confusion Matrix: Ramdom Forests')
