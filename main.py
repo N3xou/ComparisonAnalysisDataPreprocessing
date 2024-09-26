@@ -11,6 +11,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split,GridSearchCV
 # Creating dataframe, merging two dataframes into one on ID
 from pathlib import Path
+from sklearn.tree import DecisionTreeClassifier
 
 
 from unicodedata import normalize
@@ -371,6 +372,19 @@ plt.ylabel('Precision')
 plt.title('Precision-Recall Curve')
 plt.show()
 
+# decision tree
+model = DecisionTreeClassifier(max_depth=12,
+                               min_samples_split=8,
+                               random_state=1024)
+model.fit(X_train, y_train)
+y_predict = model.predict(X_test)
+
+print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
+print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
+
+plot_confusion_matrix(confusion_matrix(y_test,y_predict),
+                      classes=class_names, normalize = True,
+                      title='Normalized Confusion Matrix: CART')
 
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
@@ -383,4 +397,3 @@ plt.show()
 # todo: check different C values in gridsearch range 0.1-1
 # iv woe further wor
 # test different bins for ages and salary
-up1
