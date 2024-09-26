@@ -383,3 +383,4 @@ plt.show()
 # todo: check different C values in gridsearch range 0.1-1
 # iv woe further wor
 # test different bins for ages and salary
+up1
