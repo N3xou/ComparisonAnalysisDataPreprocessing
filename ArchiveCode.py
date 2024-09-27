@@ -101,3 +101,8 @@ df = df[(df['AMT_INCOME_TOTAL'] > q_low) & (df['AMT_INCOME_TOTAL'] < q_hi)]
 q_hi = df['CNT_FAM_MEMBERS'].quantile(0.999)
 q_low = df['CNT_FAM_MEMBERS'].quantile(0.001)
 df = df[(df['CNT_FAM_MEMBERS'] > q_low) & (df['CNT_FAM_MEMBERS'] < q_hi)]
+
+
+#confusion matrix
+conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
+conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)

@@ -334,16 +334,15 @@ y_pred_proba_adj = (y_pred_proba > 0.26).astype(int)
 #conf_matrix2 = confusion_matrix(y_test, y_grid)
 #conf_matrix_normalized2 = conf_matrix2.astype('float') / conf_matrix2.sum(axis=1)[:, np.newaxis]
 
-conf_matrix = confusion_matrix(y_test, y_pred_proba_adj)
-conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
-#conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)
+conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize='true')
+
 print("Confusion Matrix:\n", conf_matrix)
 
 class_report = classification_report(y_test, y_pred)
 print("\nClassification Report:\n", class_report)
 
 plt.figure(figsize=(6, 4))
-heatmap_matrix = sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True)
+heatmap_matrix = sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
 plt.title("Confusion Matrix")
 plt.ylabel("True label")
 plt.xlabel("Predicted label")
@@ -377,16 +376,25 @@ plt.show()
 # decision tree
 model = DecisionTreeClassifier(max_depth=12,
                                min_samples_split=8,
-                               random_state=1024)
+                               random_state=1)
 model.fit(X_train, y_train)
 y_predict = model.predict(X_test)
 
 print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
 print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
 
-plot_confusion_matrix(confusion_matrix(y_test,y_predict),
-                      classes=class_names, normalize = True,
-                      title='Normalized Confusion Matrix: CART')
+conf_matrix = confusion_matrix(y_test, y_predict, normalize ='true')
+print(pd.DataFrame(conf_matrix))
+
+plt.figure(figsize=(6, 4))
+
+sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
+
+plt.title("Normalized Confusion Matrix for Decision Tree Model")
+plt.ylabel("True Label")
+plt.xlabel("Predicted Label")
+
+plt.show()
 
 
 # random forest
@@ -400,10 +408,7 @@ y_predict = model.predict(X_test)
 print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
 print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
 
-# to create function
-plot_confusion_matrix(confusion_matrix(y_test,y_predict),
-                      classes=class_names, normalize = True,
-                      title='Normalized Confusion Matrix: Ramdom Forests')
+
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
 
