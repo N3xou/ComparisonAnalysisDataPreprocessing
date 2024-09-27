@@ -159,6 +159,7 @@ df.drop_duplicates('ID', keep='last')
 
 df.drop(columns=['Mobile'], inplace=True)
 
+
 # bucketing data
 
 plt.figure()
@@ -172,20 +173,15 @@ df['Income'].plot(kind='hist',bins=40,density=True)
 df = getCategory(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=False)
 print(df['cat_Income'].value_counts())
 
-# Converting negative values to positive the following columns column
-
 print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
-df['Age'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
-
-# categorizing age groups
+df['Age'] = (df['DAYS_BIRTH'] / 365.25).round(0).astype(int)
 
 plt.figure()
 df['Age'].plot(kind='hist',bins = 20,density=True)
 #plt.show()
 df = getCategory(df, 'Age', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
 #"young adult","elderly"
-df = df[df['Age'] >= 18] # dropping ages below 18
 print("Lowest age per age group")
 print(df.loc[df.groupby('cat_Age')['Age'].idxmin()][['cat_Age', 'Age']])
 print("Highest age per age group")
@@ -194,7 +190,7 @@ print(df['cat_Age'].value_counts())
 
 print(df['DAYS_EMPLOYED'].unique())
 df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
-df['Employment_years'] = df['DAYS_EMPLOYED'] / 365
+df['Employment_years'] = df['DAYS_EMPLOYED'] / 365.25
 plt.figure()
 df['Employment_years'].plot(kind='hist',bins=20,density=True)
 #plt.show()
