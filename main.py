@@ -235,23 +235,6 @@ print(df['Education_type'].unique())
 
 # Ordinal encoding
 
-#oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
-#df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
-#print(df['Occupation'].unique())
-#oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
-#df['Education_type'] = oe.fit_transform(df[['Education_type']]).astype(int)
-#print(df['Education_type'].unique())
-#oe = OrdinalEncoder(categories=[['lowest','low', 'medium', 'high', 'highest']])
-#df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
-#print(df['cat_Income'].unique())
-#print(df['num_cat_Income'].unique())
-#oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
-#df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
-#print(df['cat_Employment_years'].unique())
-#print(df['num_cat_Employment_years'].unique())
-
-# ordinal encoding reversed
-
 oe = OrdinalEncoder(categories=[['High position job', 'Medium position job', 'Low position job']])
 df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
 print(df['Occupation'].unique())
@@ -274,7 +257,7 @@ print(df['num_cat_Employment_years'].unique())
 
 print(df.head())
 df_encoded = df.copy()
-label_cols = ['Gender','Car','Realty', 'cat_Employment_years']
+label_cols = ['Gender','Car','Realty']
 for col in label_cols:
     le = LabelEncoder()
     print(f"Unique values in {col}: {df_encoded[col].unique()}")
@@ -322,7 +305,9 @@ ivWoe(df_for_iv, 'target', show_woe=True)
 X = df.drop(columns = ['target', 'Employment_years', 'cat_Age', 'Age', 'STATUS', 'DAYS_EMPLOYED', 'DAYS_BIRTH',
                        'Housing_type', 'Family_status', 'Income_type', 'ID', 'Income', 'cat_Age','cat_Income','cat_Employment_years', 'Starting_month'])
 Y = df['target']
+
 # LogisticRegression
+
 print(X.shape)
 X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
 
@@ -335,7 +320,8 @@ y_pred = reg.predict(X_test)
 y_pred_proba = reg.predict_proba(X_test)[:, 1]
 y_pred_proba_adj = (y_pred_proba > 0.26).astype(int)
 
-# improving the model
+# improving the model (GRID SEARCH DO NOT DELETE)
+
 #param_grid = {'C': [0.1, 1, 10, 100], 'solver': ['liblinear', 'saga']}
 #grid = GridSearchCV(LogisticRegression(random_state=1, max_iter=3000), param_grid, scoring='f1', cv =5 )
 #grid.fit(X_train_smote, y_train_smote)
@@ -385,7 +371,7 @@ plt.title('Receiver Operating Characteristic (ROC)')
 plt.legend(loc="lower right")
 plt.show()
 
-# Step 6: Precision-Recall Curve
+
 precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
 
 plt.figure(figsize=(6, 4))
@@ -396,14 +382,14 @@ plt.title('Precision-Recall Curve')
 plt.show()
 
 # decision tree
-model = DecisionTreeClassifier(max_depth=20,
+model = DecisionTreeClassifier(max_depth=15,
                                min_samples_split=8,
                                random_state=1,
                                class_weight='balanced')
 model.fit(X_train_smote, y_train_smote)
 y_pred = model.predict(X_test)
 y_pred_proba = model.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.45).astype(int)
+y_pred_proba_adj = (y_pred_proba > 0.18).astype(int)
 print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
 print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
 
@@ -439,10 +425,7 @@ print(sorted(zip(importances, feature_names), reverse=True))
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
 
-# todo: work on bucketing the Income_type. currently there are 5 , student and pensioner only have 10 records each . possibly merge with one of
-# todo: the other two or drop
-
-# todo: needs work - iv/woe +  9/25/2024 working on - logisticReg
+# todo: needs work - iv/woe +  9/27/2024 working on - decision tree
 
 # todo: check different C values in gridsearch range 0.1-1
 # iv woe further wor
