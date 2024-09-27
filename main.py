@@ -382,13 +382,12 @@ plt.title('Precision-Recall Curve')
 plt.show()
 
 # decision tree
-model = DecisionTreeClassifier(max_depth=15,
+modelDTC = DecisionTreeClassifier(max_depth=15,
                                min_samples_split=8,
-                               random_state=1,
-                               class_weight='balanced')
-model.fit(X_train_smote, y_train_smote)
-y_pred = model.predict(X_test)
-y_pred_proba = model.predict_proba(X_test)[:, 1]
+                               random_state=1)
+modelDTC.fit(X_train_smote, y_train_smote)
+y_pred = modelDTC.predict(X_test)
+y_pred_proba = modelDTC.predict_proba(X_test)[:, 1]
 y_pred_proba_adj = (y_pred_proba > 0.18).astype(int)
 print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
 print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
@@ -405,27 +404,42 @@ plt.ylabel("True Label")
 plt.xlabel("Predicted Label")
 
 plt.show()
-
-importances = model.feature_importances_
+# inspecting importances values for DecisionTree
+importances = modelDTC.feature_importances_
 feature_names = X_train.columns
 print(sorted(zip(importances, feature_names), reverse=True))
 
 # random forest
-#model = RandomForestClassifier(n_estimators=250,
-#                              max_depth=12,
-#                              min_samples_leaf=16
-#                              )
-#model.fit(X_train, y_train)
-#y_predict = model.predict(X_test)
 
-#print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
-#print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
+modelRFC = RandomForestClassifier(n_estimators=250,
+                              max_depth=10,
+                              min_samples_leaf=16
+                              )
+modelRFC.fit(X_train_smote, y_train_smote)
+y_pred = modelRFC.predict(X_test)
+y_pred_proba = modelRFC.predict_proba(X_test)[:, 1]
+y_pred_proba_adj = (y_pred_proba > 0.25).astype(int)
+print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
+print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
 
+conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize ='true')
+print(pd.DataFrame(conf_matrix))
 
+plt.figure(figsize=(6, 4))
+
+sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
+
+plt.title("Normalized Confusion Matrix for Random Forest Model")
+plt.ylabel("True Label")
+plt.xlabel("Predicted Label")
+
+plt.show()
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
 # 23/09/2024
 
-# todo: needs work - iv/woe +  9/27/2024 working on - decision tree
+# todo: model optimalization, accuracy/recall is too low
+
+# todo: needs work - iv/woe +  9/27/2024 working on - random tree
 
 # todo: check different C values in gridsearch range 0.1-1
 # iv woe further wor
