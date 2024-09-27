@@ -137,8 +137,8 @@ print(df.head())
 print(f'Datatypes\n{df.dtypes}')
 print(f'Shape{df.shape}')
 print(f'Missing data\n{df.isna().sum()}')
-#msno.matrix(df)
-#plt.show()
+msno.matrix(df)
+plt.show()
 
 print(df['Mobile'].unique())
 
@@ -161,7 +161,7 @@ df.drop(columns=['Mobile'], inplace=True)
 
 # bucketing data
 
-#plt.figure()
+plt.figure()
 print(df['Income'].unique())
 df['Income'] = df['Income'].astype(object)
 df['Income'] = df['Income']/10000
@@ -179,7 +179,7 @@ df['Age'] = (df['DAYS_BIRTH'] / 365).round(0).astype(int)
 
 # categorizing age groups
 
-#plt.figure()
+plt.figure()
 df['Age'].plot(kind='hist',bins = 20,density=True)
 #plt.show()
 df = getCategory(df, 'Age', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
@@ -194,7 +194,7 @@ print(df['cat_Age'].value_counts())
 print(df['DAYS_EMPLOYED'].unique())
 df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
 df['Employment_years'] = df['DAYS_EMPLOYED'] / 365
-#plt.figure()
+plt.figure()
 df['Employment_years'].plot(kind='hist',bins=20,density=True)
 #plt.show()
 df = getCategory(df, 'Employment_years', 5, ["lowest", "low", "medium", "high", "highest"], replace=False)
@@ -297,10 +297,11 @@ df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'Educa
 #, 'Starting_monthStarting_month'
 ivWoe(df_for_iv, 'target', show_woe=True)
 
-# LogisticRegression
+# data for ML
 X = df.drop(columns = ['target', 'Employment_years', 'cat_Age', 'Age', 'STATUS', 'DAYS_EMPLOYED', 'DAYS_BIRTH',
-                       'Housing_type', 'Family_status', 'Income_type', 'ID', 'Income', 'cat_Age','cat_Income','cat_Employment_years'])
+                       'Housing_type', 'Family_status', 'Income_type', 'ID', 'Income', 'cat_Age','cat_Income','cat_Employment_years', 'Starting_month'])
 Y = df['target']
+# LogisticRegression
 print(X.shape)
 X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
 
@@ -374,16 +375,18 @@ plt.title('Precision-Recall Curve')
 plt.show()
 
 # decision tree
-model = DecisionTreeClassifier(max_depth=12,
+model = DecisionTreeClassifier(max_depth=20,
                                min_samples_split=8,
-                               random_state=1)
-model.fit(X_train, y_train)
-y_predict = model.predict(X_test)
+                               random_state=1,
+                               class_weight='balanced')
+model.fit(X_train_smote, y_train_smote)
+y_pred = model.predict(X_test)
+y_pred_proba = model.predict_proba(X_test)[:, 1]
+y_pred_proba_adj = (y_pred_proba > 0.26).astype(int)
+print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
+print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
 
-print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
-print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
-
-conf_matrix = confusion_matrix(y_test, y_predict, normalize ='true')
+conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize ='true')
 print(pd.DataFrame(conf_matrix))
 
 plt.figure(figsize=(6, 4))
@@ -396,17 +399,20 @@ plt.xlabel("Predicted Label")
 
 plt.show()
 
+importances = model.feature_importances_
+feature_names = X_train.columns
+print(sorted(zip(importances, feature_names), reverse=True))
 
 # random forest
-model = RandomForestClassifier(n_estimators=250,
-                              max_depth=12,
-                              min_samples_leaf=16
-                              )
-model.fit(X_train, y_train)
-y_predict = model.predict(X_test)
+#model = RandomForestClassifier(n_estimators=250,
+#                              max_depth=12,
+#                              min_samples_leaf=16
+#                              )
+#model.fit(X_train, y_train)
+#y_predict = model.predict(X_test)
 
-print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
-print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
+#print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_predict)))
+#print(pd.DataFrame(confusion_matrix(y_test,y_predict)))
 
 
 # Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
