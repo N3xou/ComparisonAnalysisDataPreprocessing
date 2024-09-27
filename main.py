@@ -168,7 +168,8 @@ df['Income'] = df['Income']/10000
 df['Income'].plot(kind='hist',bins=40,density=True)
 #plt.show()
 
-df = getCategory(df, 'Income', 5, ["lowest", "low", "medium", "high", "highest"], qcut=True, replace=False)
+#df = getCategory(df, 'Income', 5, ["lowest", "low", "medium", "high", "highest"], qcut=True, replace=False)
+df = getCategory(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=False)
 print(df['cat_Income'].value_counts())
 
 # Converting negative values to positive the following columns column
@@ -197,7 +198,7 @@ df['Employment_years'] = df['DAYS_EMPLOYED'] / 365
 plt.figure()
 df['Employment_years'].plot(kind='hist',bins=20,density=True)
 #plt.show()
-df = getCategory(df, 'Employment_years', 5, ["lowest", "low", "medium", "high", "highest"], replace=False)
+df = getCategory(df, 'Employment_years', 5, ["lowest", "low", "medium", "high", "highest"], qcut = True, replace=False)
 print(df['cat_Employment_years'].value_counts())
 
 print(df['Starting_month'].unique())
@@ -234,20 +235,40 @@ print(df['Education_type'].unique())
 
 # Ordinal encoding
 
-oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
+#oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
+#df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
+#print(df['Occupation'].unique())
+#oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
+#df['Education_type'] = oe.fit_transform(df[['Education_type']]).astype(int)
+#print(df['Education_type'].unique())
+#oe = OrdinalEncoder(categories=[['lowest','low', 'medium', 'high', 'highest']])
+#df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
+#print(df['cat_Income'].unique())
+#print(df['num_cat_Income'].unique())
+#oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
+#df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
+#print(df['cat_Employment_years'].unique())
+#print(df['num_cat_Employment_years'].unique())
+
+# ordinal encoding reversed
+
+oe = OrdinalEncoder(categories=[['High position job', 'Medium position job', 'Low position job']])
 df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
 print(df['Occupation'].unique())
-oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
+
+oe = OrdinalEncoder(categories=[['Academic degree', 'Higher education', 'Incomplete higher', 'Secondary / secondary special', 'Lower secondary']])
 df['Education_type'] = oe.fit_transform(df[['Education_type']]).astype(int)
 print(df['Education_type'].unique())
-oe = OrdinalEncoder(categories=[['lowest','low', 'medium', 'high', 'highest']])
+
+oe = OrdinalEncoder(categories=[['highest', 'high', 'medium', 'low', 'lowest']])
 df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
-print(df['cat_Income'].unique())
-#print(df['num_cat_Income'].unique())
-oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
+print(df['num_cat_Income'].unique())
+
+oe = OrdinalEncoder(categories=[['highest', 'high', 'medium', 'low', 'lowest']])
 df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
 print(df['cat_Employment_years'].unique())
 print(df['num_cat_Employment_years'].unique())
+
 
 # Label encoding
 
@@ -382,7 +403,7 @@ model = DecisionTreeClassifier(max_depth=20,
 model.fit(X_train_smote, y_train_smote)
 y_pred = model.predict(X_test)
 y_pred_proba = model.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.26).astype(int)
+y_pred_proba_adj = (y_pred_proba > 0.45).astype(int)
 print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
 print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
 
