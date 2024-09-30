@@ -158,7 +158,7 @@ df['Income'] = df['Income']/10000
 df['Income'].plot(kind='hist',bins=40)
 plt.xlabel('Zarobki roczne podane w dziesiątkach tysięcy',fontsize='12')
 plt.ylabel('Liczba klientów', fontsize='12')
-plt.show()
+
 
 df = getCategory(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=False)
 print(df['cat_Income'].value_counts())
@@ -168,8 +168,9 @@ df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
 df['Age'] = (df['DAYS_BIRTH'] / 365.25).round(0).astype(int)
 
 plt.figure()
-df['Age'].plot(kind='hist',bins = 20,density=True)
-plt.show()
+df['Age'].plot(kind='hist',bins = 20)
+plt.xlabel('Wiek',fontsize='12')
+plt.ylabel('Liczba klientów', fontsize='12')
 df = getCategory(df, 'Age', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
 
 print("Lowest age per age group")
@@ -179,10 +180,13 @@ print(df.loc[df.groupby('cat_Age')['Age'].idxmax()][['cat_Age', 'Age']])
 print(df['cat_Age'].value_counts())
 
 print(df['DAYS_EMPLOYED'].unique())
+df.loc[(df['DAYS_EMPLOYED'] > 0), 'DAYS_EMPLOYED'] = 0
 df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
 df['Employment_years'] = df['DAYS_EMPLOYED'] / 365.25
 plt.figure()
-df['Employment_years'].plot(kind='hist',bins=20,density=True)
+df['Employment_years'].plot(kind='hist',bins=30)
+plt.xlabel('Ilość lat w pracy w obecnej firmie',fontsize='12')
+plt.ylabel('Liczba klientów', fontsize='12')
 plt.show()
 df = getCategory(df, 'Employment_years', 5, ["lowest", "low", "medium", "high", "highest"], qcut = True, replace=False)
 print(df['cat_Employment_years'].value_counts())
