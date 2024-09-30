@@ -289,7 +289,9 @@ ivWoe(df_for_iv, 'target', show_woe=True)
 
 # data for ML
 X = df.drop(columns = ['target', 'Employment_years', 'cat_Age', 'Age', 'STATUS', 'DAYS_EMPLOYED', 'DAYS_BIRTH',
-                       'Housing_type', 'Family_status', 'Income_type', 'ID', 'Income', 'cat_Age','cat_Income','cat_Employment_years', 'Starting_month'])
+                       'Housing_type', 'Family_status', 'Income_type', 'ID', 'Income', 'cat_Income','cat_Employment_years', 'Starting_month'])
+print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+print(X.dtypes)
 Y = df['target']
 
 # LogisticRegression
@@ -299,7 +301,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=
 
 X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
 
-reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)  # todo: adjust parameters
+reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
 
 reg.fit(X_train_smote, y_train_smote)
 y_pred = reg.predict(X_test)
