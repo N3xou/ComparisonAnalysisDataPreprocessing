@@ -125,7 +125,11 @@ print(df.head())
 print(f'Datatypes\n{df.dtypes}')
 print(f'Shape{df.shape}')
 print(f'Missing data\n{df.isna().sum()}')
-msno.matrix(df)
+
+msno.matrix(df,figsize=(18,9))
+plt.title('Macierz brakujących danych', fontsize=14)
+plt.xlabel('Kolumny', fontsize=12)
+plt.ylabel('Dane', fontsize=12)
 plt.show()
 
 print(df['Mobile'].unique())
@@ -151,7 +155,9 @@ plt.figure()
 print(df['Income'].unique())
 df['Income'] = df['Income'].astype(object)
 df['Income'] = df['Income']/10000
-df['Income'].plot(kind='hist',bins=40,density=True)
+df['Income'].plot(kind='hist',bins=40)
+plt.xlabel('Zarobki roczne podane w dziesiątkach tysięcy',fontsize='12')
+plt.ylabel('Liczba klientów', fontsize='12')
 plt.show()
 
 df = getCategory(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=False)
