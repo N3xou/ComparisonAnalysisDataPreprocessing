@@ -4,7 +4,7 @@ import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, \
     accuracy_score
 import matplotlib.pyplot as plt
@@ -14,9 +14,6 @@ from sklearn.model_selection import train_test_split,GridSearchCV
 # Creating dataframe, merging two dataframes into one on ID
 from pathlib import Path
 from sklearn.tree import DecisionTreeClassifier
-
-
-from unicodedata import normalize
 
 path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')  # Replace with your base directory
 applicationRecord = pd.read_csv(path / 'application_record.csv')
@@ -55,27 +52,22 @@ def getCategory(df, col, binsnum, labels, qcut = False, replace = True):
         df[col] = df[col].astype(object)
     else:
         if qcut:
-            localdf = pd.qcut(df[col], q=binsnum, labels=labels)  # quantile cut
+            localdf = pd.qcut(df[col], q=binsnum, labels=labels)
         else:
-            localdf = pd.cut(df[col], bins=binsnum, labels=labels)  # equal-length cut
-
+            localdf = pd.cut(df[col], bins=binsnum, labels=labels)
         localdf = pd.DataFrame(localdf)
         name = 'cat' + '_' + col
         localdf[name] = localdf[col]
         df = df.join(localdf[name])
         df[name] = df[name].astype(object)
     return df
+
 def ivWoe(data, target, bins=10, show_woe=False):
 
     newDF, woeDF = pd.DataFrame(), pd.DataFrame()
     cols = data.columns
 
     for i in cols[~cols.isin([target])]:
-        #if (data[i].dtype.kind in 'bifc') and (
-        #        len(np.unique(data[i])) > 10):  # bifc =  boolean, integer, float, or complex.
-        #    binned_x = pd.qcut(data[i], bins, duplicates='drop')
-        #    d0 = pd.DataFrame({'x': binned_x, 'y': data[target]})
-        #else:
         d0 = pd.DataFrame({'x': data[i], 'y': data[target]})
         d0 = d0.astype({"x": str})
         d = d0.groupby("x", as_index=False, dropna=False).agg({"y": ["count", "sum"]})
@@ -104,13 +96,11 @@ creditRecord.loc[creditRecord['STATUS'] == '5', 'dependency'] = 'Yes'
 
 print(creditRecord['dependency'].unique())
 
-
 # 0 = safe, 1 = flag unsafe (to approve credit)
 
-
 cpunt = creditRecord.groupby('ID').count()
-#print(df.shape)
-#print(cpunt.shape)
+print(df.shape)
+print(cpunt.shape)
 
 print(cpunt['dependency'].unique())
 
@@ -120,8 +110,6 @@ df = pd.merge(df, cpunt, how='inner', on='ID')
 df['target'] = df['dependency']
 df = df.drop(columns=['dependency'])
 
-#df.loc[df['target'] == 'Yes', 'target'] = 1
-#df.loc[df['target'] == 'No', 'target'] = 0
 print(cpunt['dependency'].value_counts())
 print(df['target'].value_counts())
 print(cpunt['dependency'].value_counts(normalize=True))
@@ -150,15 +138,12 @@ for column in df.columns:
         print(f"Dropping {dropped_count} rows due to NaN in {column} column")
 df = df.dropna()
 
-# dropping duplicates based on ID
-
 print(f"Dropping duplicates, amount of unique rows: {df['ID'].nunique()}")
 df.drop_duplicates('ID', keep='last')
 
-# dropping Mobile> as all values equal 1
+# dropping Mobile because all values equal 1
 
 df.drop(columns=['Mobile'], inplace=True)
-
 
 # bucketing data
 
@@ -167,9 +152,8 @@ print(df['Income'].unique())
 df['Income'] = df['Income'].astype(object)
 df['Income'] = df['Income']/10000
 df['Income'].plot(kind='hist',bins=40,density=True)
-#plt.show()
+plt.show()
 
-#df = getCategory(df, 'Income', 5, ["lowest", "low", "medium", "high", "highest"], qcut=True, replace=False)
 df = getCategory(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=False)
 print(df['cat_Income'].value_counts())
 
@@ -179,9 +163,9 @@ df['Age'] = (df['DAYS_BIRTH'] / 365.25).round(0).astype(int)
 
 plt.figure()
 df['Age'].plot(kind='hist',bins = 20,density=True)
-#plt.show()
+plt.show()
 df = getCategory(df, 'Age', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
-#"young adult","elderly"
+
 print("Lowest age per age group")
 print(df.loc[df.groupby('cat_Age')['Age'].idxmin()][['cat_Age', 'Age']])
 print("Highest age per age group")
@@ -193,7 +177,7 @@ df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
 df['Employment_years'] = df['DAYS_EMPLOYED'] / 365.25
 plt.figure()
 df['Employment_years'].plot(kind='hist',bins=20,density=True)
-#plt.show()
+plt.show()
 df = getCategory(df, 'Employment_years', 5, ["lowest", "low", "medium", "high", "highest"], qcut = True, replace=False)
 print(df['cat_Employment_years'].value_counts())
 
@@ -225,8 +209,6 @@ df.loc[(df['Occupation'] == 'Managers') |
 print(df['Occupation'].unique())
 print(df['Education_type'].unique())
 
-
-
 #df.loc[(df['Income_type'] == 'Student') | (df['Income_type'] == 'Pensioner'), 'Income_type'] = 'State servant'
 
 # Ordinal encoding
@@ -248,7 +230,6 @@ df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).
 print(df['cat_Employment_years'].unique())
 print(df['num_cat_Employment_years'].unique())
 
-
 # Label encoding
 
 print(df.head())
@@ -261,7 +242,7 @@ for col in label_cols:
     print(f"Unique values in {col}: {df_encoded[col].unique()}")
 df = df_encoded
 
-######## one hot encoding
+# one hot encoding
 
 onehot_cols = ['Income_type','Family_status', 'Housing_type', 'cat_Age']
 for col in onehot_cols:
@@ -269,7 +250,6 @@ for col in onehot_cols:
 print(f'Datatypes\n{df.dtypes}')
 
 # decision based on observation of amount of occurences, scaling down 3+ kids into "3" group, and 5+ families into 5
-# maybe change the type so it says 3+ instead of 3 for clarity
 
 print(df['Children_count'].value_counts())
 df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
@@ -285,7 +265,7 @@ print(f'Datatypes\n{df.dtypes}')
 print(f'Shape{df.shape}')
 print(f'Missing data\n{df.isna().sum()}')
 
-################################################### GRAPHS
+###### GRAPHS
 
 # calculting WOE and IV
 
@@ -294,7 +274,7 @@ print(df.shape)
 df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'Education_type', 'num_cat_Employment_years',
 'Work_phone', 'Phone', 'Email', 'Occupation', 'Family_count', 'Income_type',
 'Family_status', 'Housing_type', 'cat_Age','target']]
-#, 'Starting_monthStarting_month'
+
 ivWoe(df_for_iv, 'target', show_woe=True)
 
 # data for ML
@@ -367,7 +347,6 @@ plt.title('Receiver Operating Characteristic (ROC)')
 plt.legend(loc="lower right")
 plt.show()
 
-
 precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
 
 plt.figure(figsize=(6, 4))
@@ -436,7 +415,5 @@ plt.show()
 # todo: model optimalization, accuracy/recall is too low
 
 # todo: needs work - iv/woe +  9/27/2024 working on - random tree
-
-# todo: check different C values in gridsearch range 0.1-1
 # iv woe further wor
 # test different bins for ages and salary
