@@ -332,40 +332,40 @@ y_pred_proba_adj = (y_pred_proba > 0.26).astype(int)
 
 conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize='true')
 
-print("Confusion Matrix:\n", conf_matrix)
+print("Tablica kontyngencji:\n", conf_matrix)
 
 class_report = classification_report(y_test, y_pred)
-print("\nClassification Report:\n", class_report)
+print("\nRaport klasyfikacji:\n", class_report)
 
 plt.figure(figsize=(6, 4))
 heatmap_matrix = sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
-plt.title("Confusion Matrix")
-plt.ylabel("True label")
-plt.xlabel("Predicted label")
+plt.title("Macierz pomyłek dla Regresji Logistycznej")
+plt.ylabel("Etykieta rzeczywista")
+plt.xlabel("Etykieta przewidywana")
 plt.show()
 
 fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
 roc_auc = auc(fpr, tpr)
 
 plt.figure(figsize=(6, 4))
-plt.plot(fpr, tpr, label='Logistic Regression (AUC = %0.2f)' % roc_auc)
+plt.plot(fpr, tpr, label='Logistyczna regresja (AUC = %0.2f)' % roc_auc)
 plt.plot([0, 1], [0, 1], 'r--')
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
 
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic (ROC)')
+plt.xlabel('Wskaźnik fałszywych pozytywów')
+plt.ylabel('Wskaźnik prawdziwych pozytywów')
+plt.title('Krzywa charakterystyki odbiornika (ROC)')
 plt.legend(loc="lower right")
 plt.show()
 
 precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
 
 plt.figure(figsize=(6, 4))
-plt.plot(recall, precision, label='Precision-Recall curve')
-plt.xlabel('Recall')
-plt.ylabel('Precision')
-plt.title('Precision-Recall Curve')
+plt.plot(recall, precision, label='Krzywa precyzji i czułości')
+plt.xlabel('Czułość')
+plt.ylabel('Precyzja')
+plt.title('Krzywa precyzji i czułości')
 plt.show()
 
 # decision tree
@@ -375,7 +375,7 @@ modelDTC = DecisionTreeClassifier(max_depth=15,
 modelDTC.fit(X_train_smote, y_train_smote)
 y_pred = modelDTC.predict(X_test)
 y_pred_proba = modelDTC.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.18).astype(int)
+y_pred_proba_adj = (y_pred_proba > 0.21).astype(int)
 print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
 print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
 
@@ -386,9 +386,10 @@ plt.figure(figsize=(6, 4))
 
 sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
 
-plt.title("Normalized Confusion Matrix for Decision Tree Model")
-plt.ylabel("True Label")
-plt.xlabel("Predicted Label")
+plt.title("Macierz pomyłek dla modelu drzewa decyzyjnego")
+plt.ylabel("Etykieta rzeczywista")
+plt.xlabel("Etykieta przewidywana")
+
 
 plt.show()
 # inspecting importances values for DecisionTree
@@ -421,11 +422,11 @@ plt.ylabel("True Label")
 plt.xlabel("Predicted Label")
 
 plt.show()
-# Working with https://www.kaggle.com/code/rikdifos/credit-card-approval-prediction-using-ml/notebook
-# 23/09/2024
+
+importances = modelRFC.feature_importances_
+feature_names = X_train.columns
+print(sorted(zip(importances, feature_names), reverse=True))
 
 # todo: model optimalization, accuracy/recall is too low
 
-# todo: needs work - iv/woe +  9/27/2024 working on - random tree
-# iv woe further wor
-# test different bins for ages and salary
+# todo: needs work - iv/woe values overall seem low
