@@ -11,11 +11,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split,GridSearchCV
-# Creating dataframe, merging two dataframes into one on ID
 from pathlib import Path
+from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
 
-path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')  # Replace with your base directory
+
+# Creating dataframe, merging two dataframes into one on ID
+path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')
 applicationRecord = pd.read_csv(path / 'application_record.csv')
 creditRecord = pd.read_csv(path / 'credit_record.csv')
 
@@ -85,6 +87,50 @@ def ivWoe(data, target, bins=10, show_woe=False):
         if show_woe == True:
             print(d)
     return newDF, woeDF
+
+def fitModel(model, name, adjustment = 0.3, show_matrix = True, show_roc = False,show_precision_recall = False):
+    model.fit(X_train_smote,y_train_smote)
+    y_pred = model.predict(X_test)
+    y_pred_proba = model.predict_proba(X_test)[:, 1]
+    y_pred_proba_adj = (y_pred_proba > adjustment).astype(int)
+    print('Dokładność dla {} wynosi {:.5}'.format(name,accuracy_score(y_test, y_pred_proba_adj)))
+    print(pd.DataFrame(confusion_matrix(y_test, y_pred_proba_adj)))
+    conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize='true')
+    print(pd.DataFrame(conf_matrix))
+    print(f"Tablica kontyngencji dla {name}:\n", conf_matrix)
+    class_report = classification_report(y_test, y_pred)
+    print(f"\nRaport klasyfikacji dla {name}:\n", class_report)
+    if show_matrix:
+        plt.figure(figsize=(6, 4))
+        sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
+        plt.title(f"Macierz pomyłek dla modelu {name}")
+        plt.ylabel("Wartość rzeczywista")
+        plt.xlabel("Wartość przewidywana")
+        plt.show()
+    if show_roc:
+        fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
+        roc_auc = auc(fpr, tpr)
+        plt.figure(figsize=(6, 4))
+        plt.plot(fpr, tpr, label='Logistyczna regresja (AUC = %0.2f)' % roc_auc)
+        plt.plot([0, 1], [0, 1], 'r--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('Wskaźnik fałszywych pozytywów')
+        plt.ylabel('Wskaźnik prawdziwych pozytywów')
+        plt.title('Krzywa charakterystyki odbiornika (ROC)')
+        plt.legend(loc="lower right")
+        plt.show()
+    if show_precision_recall:
+        precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
+
+        plt.figure(figsize=(6, 4))
+        plt.plot(recall, precision, label='Krzywa precyzji i czułości')
+        plt.xlabel('Czułość')
+        plt.ylabel('Precyzja')
+        plt.title('Krzywa precyzji i czułości')
+        plt.show()
+    print('-------Success-------')
+
 ## feature engineering
 print(creditRecord['STATUS'].unique())
 
@@ -294,19 +340,18 @@ print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
 print(X.dtypes)
 Y = df['target']
 
-# LogisticRegression
+# Modeling
 
 print(X.shape)
 X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
 
 X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
 
-reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
+# LogisticRegression
 
-reg.fit(X_train_smote, y_train_smote)
-y_pred = reg.predict(X_test)
-y_pred_proba = reg.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.26).astype(int)
+reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
+fitModel(reg,'Regresja Logistyczna',0.26, show_roc=True,show_precision_recall=True)
+
 
 # improving the model (GRID SEARCH DO NOT DELETE)
 
@@ -330,72 +375,18 @@ y_pred_proba_adj = (y_pred_proba > 0.26).astype(int)
 #conf_matrix2 = confusion_matrix(y_test, y_grid)
 #conf_matrix_normalized2 = conf_matrix2.astype('float') / conf_matrix2.sum(axis=1)[:, np.newaxis]
 
-conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize='true')
-
-print("Tablica kontyngencji:\n", conf_matrix)
-
-class_report = classification_report(y_test, y_pred)
-print("\nRaport klasyfikacji:\n", class_report)
-
-plt.figure(figsize=(6, 4))
-heatmap_matrix = sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
-plt.title("Macierz pomyłek dla Regresji Logistycznej")
-plt.ylabel("Etykieta rzeczywista")
-plt.xlabel("Etykieta przewidywana")
-plt.show()
-
-fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
-roc_auc = auc(fpr, tpr)
-
-plt.figure(figsize=(6, 4))
-plt.plot(fpr, tpr, label='Logistyczna regresja (AUC = %0.2f)' % roc_auc)
-plt.plot([0, 1], [0, 1], 'r--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-
-plt.xlabel('Wskaźnik fałszywych pozytywów')
-plt.ylabel('Wskaźnik prawdziwych pozytywów')
-plt.title('Krzywa charakterystyki odbiornika (ROC)')
-plt.legend(loc="lower right")
-plt.show()
-
-precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
-
-plt.figure(figsize=(6, 4))
-plt.plot(recall, precision, label='Krzywa precyzji i czułości')
-plt.xlabel('Czułość')
-plt.ylabel('Precyzja')
-plt.title('Krzywa precyzji i czułości')
-plt.show()
 
 # decision tree
 modelDTC = DecisionTreeClassifier(max_depth=15,
                                min_samples_split=8,
                                random_state=1)
-modelDTC.fit(X_train_smote, y_train_smote)
-y_pred = modelDTC.predict(X_test)
-y_pred_proba = modelDTC.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.21).astype(int)
-print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
-print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
+fitModel(modelDTC,'Drzewo decyzyjne', 0.21, show_roc=True,show_precision_recall=True)
 
-conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize ='true')
-print(pd.DataFrame(conf_matrix))
-
-plt.figure(figsize=(6, 4))
-
-sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
-
-plt.title("Macierz pomyłek dla modelu drzewa decyzyjnego")
-plt.ylabel("Etykieta rzeczywista")
-plt.xlabel("Etykieta przewidywana")
-
-
-plt.show()
 # inspecting importances values for DecisionTree
-importances = modelDTC.feature_importances_
+importancesDTC = modelDTC.feature_importances_
 feature_names = X_train.columns
-print(sorted(zip(importances, feature_names), reverse=True))
+print(sorted(zip(importancesDTC, feature_names), reverse=True))
+print('aaaaaaaaaaok')
 
 # random forest
 
@@ -423,9 +414,20 @@ plt.xlabel("Predicted Label")
 
 plt.show()
 
-importances = modelRFC.feature_importances_
+importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
-print(sorted(zip(importances, feature_names), reverse=True))
+print(sorted(zip(importancesRFC, feature_names), reverse=True))
+
+# SVM
+
+modelSVM = svm.SVC(C = 0.8, kernel='linear')
+modelSVM.fit(X_train_smote,y_train_smote)
+y_pred = modelSVM.predict(X_test)
+y_pred_proba = modelSVM.predict_proba(X_test)[:, 1]
+y_pred_proba_adj = (y_pred_proba > 0.25).astype(int)
+print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
+print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
+
 
 # todo: model optimalization, accuracy/recall is too low
 
