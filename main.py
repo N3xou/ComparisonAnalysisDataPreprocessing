@@ -408,6 +408,7 @@ fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_rec
 
 
 
+# todo: feature importances  for svm,randomforest
 # todo: model optimalization, accuracy/recall is too low
 
 # todo: needs work - iv/woe values overall seem low
