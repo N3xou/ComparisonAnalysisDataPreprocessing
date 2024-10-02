@@ -111,7 +111,7 @@ def fitModel(model, name, adjustment = 0.3, show_matrix = True, show_roc = False
         fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
         roc_auc = auc(fpr, tpr)
         plt.figure(figsize=(6, 4))
-        plt.plot(fpr, tpr, label='Logistyczna regresja (AUC = %0.2f)' % roc_auc)
+        plt.plot(fpr, tpr, label=f'{name} (AUC = %0.2f)' % roc_auc)
         plt.plot([0, 1], [0, 1], 'r--')
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
@@ -394,25 +394,7 @@ modelRFC = RandomForestClassifier(n_estimators=250,
                               max_depth=10,
                               min_samples_leaf=16
                               )
-modelRFC.fit(X_train_smote, y_train_smote)
-y_pred = modelRFC.predict(X_test)
-y_pred_proba = modelRFC.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.25).astype(int)
-print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
-print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
-
-conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize ='true')
-print(pd.DataFrame(conf_matrix))
-
-plt.figure(figsize=(6, 4))
-
-sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
-
-plt.title("Normalized Confusion Matrix for Random Forest Model")
-plt.ylabel("True Label")
-plt.xlabel("Predicted Label")
-
-plt.show()
+fitModel(modelRFC,'Las losowy', show_roc=True,show_precision_recall=True)
 
 importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
@@ -421,12 +403,9 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 # SVM
 
 modelSVM = svm.SVC(C = 0.8, kernel='linear')
-modelSVM.fit(X_train_smote,y_train_smote)
-y_pred = modelSVM.predict(X_test)
-y_pred_proba = modelSVM.predict_proba(X_test)[:, 1]
-y_pred_proba_adj = (y_pred_proba > 0.25).astype(int)
-print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
-print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
+fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
+
+
 
 
 # todo: model optimalization, accuracy/recall is too low
