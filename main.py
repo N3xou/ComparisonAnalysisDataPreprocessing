@@ -408,7 +408,10 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 modelSVM = svm.SVC(C = 0.8, kernel='linear')
 fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
 
+feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
+print('Coefficients for SVM (absolute values, sorted):')
+print(feature_coef_svm)
 
 
 # todo: feature importances  for svm,randomforest
