@@ -405,7 +405,7 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
 
-modelSVM = svm.SVC(C = 0.8, kernel='linear')
+modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
 fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
 
 feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
