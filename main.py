@@ -349,9 +349,11 @@ X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_tr
 
 # LogisticRegression
 
-reg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
-fitModel(reg,'Regresja Logistyczna',0.26, show_roc=True,show_precision_recall=True)
-
+modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
+fitModel(modelReg,'Regresja Logistyczna',0.26, show_roc=True,show_precision_recall=True)
+feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
+print('Coefficients for Logistic Regression')
+print(feature_coef)
 
 # improving the model (GRID SEARCH DO NOT DELETE)
 
@@ -385,8 +387,8 @@ fitModel(modelDTC,'Drzewo decyzyjne', 0.21, show_roc=True,show_precision_recall=
 # inspecting importances values for DecisionTree
 importancesDTC = modelDTC.feature_importances_
 feature_names = X_train.columns
+print('Importances for DTC')
 print(sorted(zip(importancesDTC, feature_names), reverse=True))
-print('aaaaaaaaaaok')
 
 # random forest
 
@@ -398,6 +400,7 @@ fitModel(modelRFC,'Las losowy', show_roc=True,show_precision_recall=True)
 
 importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
+print('Importances for RFC')
 print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
