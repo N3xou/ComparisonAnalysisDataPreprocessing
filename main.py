@@ -14,6 +14,10 @@ from sklearn.model_selection import train_test_split,GridSearchCV
 from pathlib import Path
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
 
 
 # Creating dataframe, merging two dataframes into one on ID
@@ -203,10 +207,14 @@ df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
 
 print(df['Starting_month'].unique())
 df['Starting_month'] = abs(df['Starting_month'])
+# buckets
+
+df['Income'] = scaler.fit_transform(df[['Income']])
+df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
 
 # one hot encoding
 
-onehot_cols = ['Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status']
+onehot_cols = ['Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status', 'Income']
 for col in onehot_cols:
     df = oneHot(df, col)
 print(f'Datatypes\n{df.dtypes}')
@@ -222,7 +230,7 @@ df_for_iv = df.drop(columns = ['STATUS', 'ID'])
 ivWoe(df_for_iv, 'target', show_woe=True)
 
 # data for ML
-X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status'])
+X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status', 'Income'])
 
 print(X.dtypes)
 Y = df['target']
@@ -237,7 +245,7 @@ X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_tr
 # LogisticRegression
 
 modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
-fitModel(modelReg,'Regresja Logistyczna',0.26, show_roc=True,show_precision_recall=True)
+fitModel(modelReg,'Regresja Logistyczna',0.26)#, show_roc=True,show_precision_recall=True)
 feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 print('Coefficients for Logistic Regression')
 print(feature_coef)
@@ -246,7 +254,7 @@ print(feature_coef)
 modelDTC = DecisionTreeClassifier(max_depth=15,
                                min_samples_split=8,
                                random_state=1)
-fitModel(modelDTC,'Drzewo decyzyjne', 0.21, show_roc=True,show_precision_recall=True)
+fitModel(modelDTC,'Drzewo decyzyjne', 0.21,)# show_roc=True,show_precision_recall=True)
 
 # inspecting importances values for DecisionTree
 importancesDTC = modelDTC.feature_importances_
@@ -260,7 +268,7 @@ modelRFC = RandomForestClassifier(n_estimators=250,
                               max_depth=10,
                               min_samples_leaf=16
                               )
-fitModel(modelRFC,'Las losowy', show_roc=True,show_precision_recall=True)
+fitModel(modelRFC,'Las losowy')#, show_roc=True,show_precision_recall=True)
 
 importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
@@ -269,13 +277,13 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
 
-modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
-fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
+#modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
+#fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
 
-feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
+#feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
-print('Coefficients for SVM (absolute values, sorted):')
-print(feature_coef_svm)
+#print('Coefficients for SVM (absolute values, sorted):')
+#print(feature_coef_svm)
 
 
 # todo: model optimalization, accuracy/recall is too low
@@ -284,4 +292,4 @@ print(feature_coef_svm)
 # todo: sprawdzic dane bez grupowania, wykorzystac foldy.
 
 # grupowanie, grupowac  te cechy ktore maja DUZY wplyw czy te ktore maja maly?
-# uczenie SVM trwa bardzo dlugo
+# uczenie SVM trwa za dlugo
