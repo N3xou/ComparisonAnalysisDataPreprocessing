@@ -212,7 +212,8 @@ df['Starting_month'] = abs(df['Starting_month'])
 df['Income'] = scaler.fit_transform(df[['Income']])
 df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
 
-# one hot encoding
+df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
+df.loc[df['Family_count'] >= 5, 'Family_count'] = 5
 
 onehot_cols = ['Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status', 'Income']
 for col in onehot_cols:
@@ -230,7 +231,8 @@ df_for_iv = df.drop(columns = ['STATUS', 'ID'])
 ivWoe(df_for_iv, 'target', show_woe=True)
 
 # data for ML
-X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status', 'Income'])
+X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status',
+                       'Income'])
 
 print(X.dtypes)
 Y = df['target']
@@ -277,13 +279,13 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
 
-#modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
-#fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
+modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
+fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
 
-#feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
+feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
-#print('Coefficients for SVM (absolute values, sorted):')
-#print(feature_coef_svm)
+print('Coefficients for SVM (absolute values, sorted):')
+print(feature_coef_svm)
 
 
 # todo: model optimalization, accuracy/recall is too low
