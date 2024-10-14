@@ -41,10 +41,11 @@ def oneHot(df, feature, rank = 0):
     df = df.join(pos)
     return df
 
-def getCategory(df, col, binsnum, labels, qcut = False, replace = True):
+def categorize(df, col, binsnum, labels, qcut = False, replace = True):
     if replace:
         if qcut:
             # Quantile cut
+
             df[col] = pd.qcut(df[col], q=binsnum, labels=labels)
         else:
             # Equal-length cut
@@ -195,131 +196,20 @@ df.drop_duplicates('ID', keep='last')
 
 df.drop(columns=['Mobile'], inplace=True)
 
-# bucketing data
-
-plt.figure()
-print(df['Income'].unique())
-df['Income'] = df['Income'].astype(object)
-df['Income'] = df['Income']/10000
-df['Income'].plot(kind='hist',bins=40)
-plt.xlabel('Zarobki roczne podane w dziesiątkach tysięcy',fontsize='12')
-plt.ylabel('Liczba klientów', fontsize='12')
-
-
-df = getCategory(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=False)
-print(df['cat_Income'].value_counts())
-
-print(df['DAYS_BIRTH'].unique())
 df['DAYS_BIRTH'] = abs(df['DAYS_BIRTH'])
-df['Age'] = (df['DAYS_BIRTH'] / 365.25).round(0).astype(int)
 
-plt.figure()
-df['Age'].plot(kind='hist',bins = 20)
-plt.xlabel('Wiek',fontsize='12')
-plt.ylabel('Liczba klientów', fontsize='12')
-df = getCategory(df, 'Age', 3, ["young adult", "mature", "elder"], qcut = True, replace=False)
-
-print("Lowest age per age group")
-print(df.loc[df.groupby('cat_Age')['Age'].idxmin()][['cat_Age', 'Age']])
-print("Highest age per age group")
-print(df.loc[df.groupby('cat_Age')['Age'].idxmax()][['cat_Age', 'Age']])
-print(df['cat_Age'].value_counts())
-
-print(df['DAYS_EMPLOYED'].unique())
 df.loc[(df['DAYS_EMPLOYED'] > 0), 'DAYS_EMPLOYED'] = 0
 df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
-df['Employment_years'] = df['DAYS_EMPLOYED'] / 365.25
-plt.figure()
-df['Employment_years'].plot(kind='hist',bins=30)
-plt.xlabel('Ilość lat w pracy w obecnej firmie',fontsize='12')
-plt.ylabel('Liczba klientów', fontsize='12')
-plt.show()
-df = getCategory(df, 'Employment_years', 5, ["lowest", "low", "medium", "high", "highest"], qcut = True, replace=False)
-print(df['cat_Employment_years'].value_counts())
 
 print(df['Starting_month'].unique())
 df['Starting_month'] = abs(df['Starting_month'])
 
-print(df['Occupation'].unique())
-df.loc[(df['Occupation'] == 'Waiters/barmen staff') |
-(df['Occupation'] == 'Cleaning staff') |
-(df['Occupation'] == 'Cooking staff') |
-(df['Occupation'] == 'Low-skill Laborers') |
-(df['Occupation'] == 'Security staff') |
-(df['Occupation'] == 'Drivers') |
-(df['Occupation'] == 'Secretaries'), 'Occupation'
-] = 'Low position job'
-df.loc[(df['Occupation'] == 'Sales staff') |
-(df['Occupation'] == 'Accountants') |
-(df['Occupation'] == 'Laborers') |
-(df['Occupation'] == 'Core staff') |
-(df['Occupation'] == 'Private service staff') |
-(df['Occupation'] == 'Medicine staff') |
-(df['Occupation'] == 'HR staff') |
-(df['Occupation'] == 'Realty agents'), 'Occupation'
-] = 'Medium position job'
-df.loc[(df['Occupation'] == 'Managers') |
-(df['Occupation'] == 'High skill tech staff') |
-(df['Occupation'] == 'IT staff'), 'Occupation'
-] = 'High position job'
-print(df['Occupation'].unique())
-print(df['Education_type'].unique())
-
-#df.loc[(df['Income_type'] == 'Student') | (df['Income_type'] == 'Pensioner'), 'Income_type'] = 'State servant'
-
-# Ordinal encoding
-
-oe = OrdinalEncoder(categories=[['High position job', 'Medium position job', 'Low position job']])
-df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
-print(df['Occupation'].unique())
-
-oe = OrdinalEncoder(categories=[['Academic degree', 'Higher education', 'Incomplete higher', 'Secondary / secondary special', 'Lower secondary']])
-df['Education_type'] = oe.fit_transform(df[['Education_type']]).astype(int)
-print(df['Education_type'].unique())
-
-oe = OrdinalEncoder(categories=[['highest', 'high', 'medium', 'low', 'lowest']])
-df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
-print(df['num_cat_Income'].unique())
-
-oe = OrdinalEncoder(categories=[['highest', 'high', 'medium', 'low', 'lowest']])
-df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
-print(df['cat_Employment_years'].unique())
-print(df['num_cat_Employment_years'].unique())
-
-# Label encoding
-
-print(df.head())
-df_encoded = df.copy()
-label_cols = ['Gender','Car','Realty']
-for col in label_cols:
-    le = LabelEncoder()
-    print(f"Unique values in {col}: {df_encoded[col].unique()}")
-    df_encoded[col] = le.fit_transform(df_encoded[col])
-    print(f"Unique values in {col}: {df_encoded[col].unique()}")
-df = df_encoded
-
 # one hot encoding
 
-onehot_cols = ['Income_type','Family_status', 'Housing_type', 'cat_Age']
+onehot_cols = ['Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status']
 for col in onehot_cols:
     df = oneHot(df, col)
 print(f'Datatypes\n{df.dtypes}')
-
-# decision based on observation of amount of occurences, scaling down 3+ kids into "3" group, and 5+ families into 5
-
-print(df['Children_count'].value_counts())
-df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
-
-print(df['Family_count'].value_counts())
-df.loc[df['Family_count'] >= 5, 'Family_count'] = 5
-
-df['Family_count'] = df['Family_count'].astype(int)
-print(df['Family_count'].value_counts())
-
-print(df.head())
-print(f'Datatypes\n{df.dtypes}')
-print(f'Shape{df.shape}')
-print(f'Missing data\n{df.isna().sum()}')
 
 ###### GRAPHS
 
@@ -327,16 +217,13 @@ print(f'Missing data\n{df.isna().sum()}')
 
 print(df.shape)
 
-df_for_iv = df[['Car','Gender', 'Realty', 'Children_count', 'cat_Income', 'Education_type', 'num_cat_Employment_years',
-'Work_phone', 'Phone', 'Email', 'Occupation', 'Family_count', 'Income_type',
-'Family_status', 'Housing_type', 'cat_Age','target']]
+df_for_iv = df.drop(columns = ['STATUS', 'ID'])
 
 ivWoe(df_for_iv, 'target', show_woe=True)
 
 # data for ML
-X = df.drop(columns = ['target', 'Employment_years', 'cat_Age', 'Age', 'STATUS', 'DAYS_EMPLOYED', 'DAYS_BIRTH',
-                       'Housing_type', 'Family_status', 'Income_type', 'ID', 'Income', 'cat_Income','cat_Employment_years', 'Starting_month'])
-print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status'])
+
 print(X.dtypes)
 Y = df['target']
 
@@ -354,29 +241,6 @@ fitModel(modelReg,'Regresja Logistyczna',0.26, show_roc=True,show_precision_reca
 feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 print('Coefficients for Logistic Regression')
 print(feature_coef)
-
-# improving the model (GRID SEARCH DO NOT DELETE)
-
-#param_grid = {'C': [0.1, 1, 10, 100], 'solver': ['liblinear', 'saga']}
-#grid = GridSearchCV(LogisticRegression(random_state=1, max_iter=3000), param_grid, scoring='f1', cv =5 )
-#grid.fit(X_train_smote, y_train_smote)
-#best_params = grid.best_params_
-#best_score = grid.best_score_
-#print(f'Best parameters: {best_params}')
-#print(f'Best score: {best_score}')
-
-#y_grid_proba = grid.predict_proba(X_test)[:, 1]
-#y_grid = (y_grid_proba > 0.5).astype(int)
-
-#precision, recall, thresholds = precision_recall_curve(y_test, y_pred_proba)
-#for i, val in enumerate(recall):
-#    if val >= 0.1:  # or your desired recall level
-#        print(f"Threshold: {thresholds[i]}, Precision: {precision[i]}")
-# visualization
-
-#conf_matrix2 = confusion_matrix(y_test, y_grid)
-#conf_matrix_normalized2 = conf_matrix2.astype('float') / conf_matrix2.sum(axis=1)[:, np.newaxis]
-
 
 # decision tree
 modelDTC = DecisionTreeClassifier(max_depth=15,
@@ -414,7 +278,10 @@ print('Coefficients for SVM (absolute values, sorted):')
 print(feature_coef_svm)
 
 
-# todo: feature importances  for svm,randomforest
 # todo: model optimalization, accuracy/recall is too low
 
-# todo: needs work - iv/woe values overall seem low
+
+# todo: sprawdzic dane bez grupowania, wykorzystac foldy.
+
+# grupowanie, grupowac  te cechy ktore maja DUZY wplyw czy te ktore maja maly?
+# uczenie SVM trwa bardzo dlugo
