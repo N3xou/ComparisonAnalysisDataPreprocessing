@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Credit Prediction</title>
+</head>
+<body>
+    <h2>Enter Your Information</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Result</title>
+</head>
+<body>
+    <h2>Prediction Result</h2>
+    <p>The application has been: {{ result }}</p>
+    <p>Model accuracy: {{ accuracy }}%</p>
+    <a href="{% url 'predict' %}">Make another prediction</a>
+</body>
+</html>
