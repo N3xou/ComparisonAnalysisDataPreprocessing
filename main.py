@@ -93,8 +93,8 @@ def ivWoe(data, target, bins=10, show_woe=False):
             print(d)
     return newDF, woeDF
 
-def fitModel(model, name, adjustment = 0.3, show_matrix = True, show_roc = False,show_precision_recall = False):
-    model.fit(X_train_smote,y_train_smote)
+def fitModel(model, name, x,y,adjustment = 0.3, show_matrix = True, show_roc = False,show_precision_recall = False):
+    model.fit(x,y)
     y_pred = model.predict(X_test)
     y_pred_proba = model.predict_proba(X_test)[:, 1]
     y_pred_proba_adj = (y_pred_proba > adjustment).astype(int)
@@ -240,23 +240,28 @@ Y = df['target']
 # Modeling
 
 print(X.shape)
-X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
+#X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
 
-X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
+#X_train_smote, y_train_smote = SMOTE().fit_resample(X_train, y_train)
+Y = Y.astype('int')
+X_balance,Y_balance = SMOTE().fit_resample(X,Y)
+X_balance = pd.DataFrame(X_balance, columns = X.columns)
 
+X_train, X_test, y_train, y_test = train_test_split(X_balance,Y_balance,
+                                                    stratify=Y_balance, test_size=0.3,
+                                                    random_state = 5)
 # LogisticRegression
 
 modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
-fitModel(modelReg,'Regresja Logistyczna',0.26)#, show_roc=True,show_precision_recall=True)
+fitModel(modelReg,'Regresja Logistyczna',X_train,y_train,0.26)#, show_roc=True,show_precision_recall=True)
 feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 print('Coefficients for Logistic Regression')
 print(feature_coef)
 
 # decision tree
 modelDTC = DecisionTreeClassifier(max_depth=15,
-                               min_samples_split=8,
-                               random_state=1)
-fitModel(modelDTC,'Drzewo decyzyjne', 0.21,)# show_roc=True,show_precision_recall=True)
+                               min_samples_split=8)
+fitModel(modelDTC,'Drzewo decyzyjne', X_train,y_train,0.21,)# show_roc=True,show_precision_recall=True)
 
 # inspecting importances values for DecisionTree
 importancesDTC = modelDTC.feature_importances_
@@ -270,7 +275,7 @@ modelRFC = RandomForestClassifier(n_estimators=250,
                               max_depth=10,
                               min_samples_leaf=16
                               )
-fitModel(modelRFC,'Las losowy')#, show_roc=True,show_precision_recall=True)
+fitModel(modelRFC,'Las losowy',X_train,y_train)#, show_roc=True,show_precision_recall=True)
 
 importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
@@ -280,7 +285,11 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 # SVM
 
 modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
+<<<<<<< HEAD
 fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
+=======
+fitModel(modelSVM,'Maszyna wektorów nośnych',X_train,y_train, show_roc=True,show_precision_recall=True)
+>>>>>>> e943a3f (Grouping testing done)
 
 feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
