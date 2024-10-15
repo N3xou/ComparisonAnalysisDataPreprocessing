@@ -285,11 +285,8 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 # SVM
 
 modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
-<<<<<<< HEAD
 fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
-=======
 fitModel(modelSVM,'Maszyna wektorów nośnych',X_train,y_train, show_roc=True,show_precision_recall=True)
->>>>>>> e943a3f (Grouping testing done)
 
 feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
