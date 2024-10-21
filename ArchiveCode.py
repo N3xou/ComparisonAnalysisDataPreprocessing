@@ -109,19 +109,4 @@ conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)
 
 
 
-#oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
-#df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
-#print(df['Occupation'].unique())
-#oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
-#df['Education_type'] = oe.fit_transform(df[['Education_type']]).astype(int)
-#print(df['Education_type'].unique())
-#oe = OrdinalEncoder(categories=[['lowest','low', 'medium', 'high', 'highest']])
-#df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
-#print(df['cat_Income'].unique())
-#print(df['num_cat_Income'].unique())
-#oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
-#df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
-#print(df['cat_Employment_years'].unique())
-#print(df['num_cat_Employment_years'].unique())
-
 
