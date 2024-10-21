@@ -125,23 +125,3 @@ conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)
 #print(df['num_cat_Employment_years'].unique())
 
 
-#modelDTC.fit(X_train_smote, y_train_smote)
-#y_pred = modelDTC.predict(X_test)
-#y_pred_proba = modelDTC.predict_proba(X_test)[:, 1]
-#y_pred_proba_adj = (y_pred_proba > 0.21).astype(int)
-#print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
-#print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
-
-#conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize ='true')
-#print(pd.DataFrame(conf_matrix))
-
-#plt.figure(figsize=(6, 4))
-
-#sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
-
-#plt.title("Macierz pomyłek dla modelu drzewa decyzyjnego")
-#plt.ylabel("Etykieta rzeczywista")
-#plt.xlabel("Etykieta przewidywana")
-
-
-#plt.show()
