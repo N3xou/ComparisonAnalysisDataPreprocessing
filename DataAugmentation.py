@@ -4,7 +4,7 @@ import numpy as np
 df = pd.read_csv('application_record.csv')
 df2 = pd.read_csv('credit_record.csv')
 
-def augment_data(df, num_copies=100):
+def augment_data(df, num_copies):
     new_data = []
 
     for i in range(num_copies):
@@ -25,13 +25,14 @@ def augment_data(df, num_copies=100):
         print(i)
 
     augmented_df = pd.concat(new_data, ignore_index=True)
+    augmented_df['ID'] = np.arange(1, len(augmented_df) + 1)
     return augmented_df
 
 
-#augmented_df = augment_data(df, num_copies=5)
-augmented_df2 = augment_data(df2, num_copies=5)
+augmented_df = augment_data(df, num_copies=30)
+augmented_df2 = augment_data(df2, num_copies=30)
 
-#augmented_df.to_csv('application_record_augmented.csv', index=False)
+augmented_df.to_csv('application_record_augmented.csv', index=False)
 augmented_df2.to_csv('credit_record_augmented.csv', index=False)
-#print("Nowy zbiór danych ma rozmiar:", augmented_df.shape)
+print("Nowy zbiór danych ma rozmiar:", augmented_df.shape)
 print("Nowy zbiór danych ma rozmiar:", augmented_df2.shape)

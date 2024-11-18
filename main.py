@@ -172,6 +172,10 @@ print(f'Datatypes\n{df.dtypes}')
 print(f'Shape{df.shape}')
 print(f'Missing data\n{df.isna().sum()}')
 
+
+print("Sample data:\n", df.head())
+
+
 msno.matrix(df,figsize=(18,9))
 plt.title('Macierz brakujących danych', fontsize=14)
 plt.xlabel('Kolumny', fontsize=12)
@@ -420,7 +424,4 @@ print('Coefficients for SVM (absolute values, sorted):')
 print(feature_coef_svm)
 
 
-# todo: feature importances  for svm,randomforest
-# todo: model optimalization, accuracy/recall is too low
 
-# todo: needs work - iv/woe values overall seem low
