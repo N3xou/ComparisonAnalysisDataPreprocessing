@@ -11,7 +11,7 @@ INSTALLED_APPS = [
 
 from django.shortcuts import render
 import numpy as np
-from .Forms import CreditPredictionForm
+from DjangoCreditApproval.Forms import CreditPredictionForm
 import joblib
 
 
