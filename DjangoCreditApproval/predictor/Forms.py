@@ -8,21 +8,24 @@ class CreditPredictionForm(forms.Form):
         choices=[('M', 'Male'), ('F', 'Female')],
         widget=forms.RadioSelect,
     )
-    owns_car = forms.ChoiceField(
+    car = forms.ChoiceField(
         label='Owns Car?',
         choices=[('Y', 'Yes'), ('N', 'No')],
         widget=forms.RadioSelect,
     )
-    owns_realty = forms.ChoiceField(
+    realty = forms.ChoiceField(
         label='Owns Property?',
         choices=[('Y', 'Yes'), ('N', 'No')],
         widget=forms.RadioSelect,
     )
-    number_of_children = forms.IntegerField(label='Number of Children', min_value=0)
-    annual_income = forms.FloatField(label='Annual Income', min_value=0)
+    age = forms.IntegerField(label='Age(years)', min_value=0)
+    family_size = forms.IntegerField(label='Family Size', min_value=1)
+    kids = forms.IntegerField(label='Number of Children', min_value=0)
+    annual_income = forms.FloatField(label='Annual Income in $', min_value=0)
+    employment_months = forms.IntegerField(label='Months Employed', min_value=0)
 
     # Categorical data
-    income_category = forms.ChoiceField(
+    income_type = forms.ChoiceField(
         label='Income Category',
         choices=[
             ('Working', 'Working'),
@@ -34,7 +37,7 @@ class CreditPredictionForm(forms.Form):
             ('Other', 'Other'),
         ]
     )
-    education_level = forms.ChoiceField(
+    education_type = forms.ChoiceField(
         label='Education Level',
         choices=[
             ('Lower Secondary', 'Lower Secondary'),
@@ -44,7 +47,7 @@ class CreditPredictionForm(forms.Form):
             ('Academic Degree', 'Academic Degree'),
         ]
     )
-    marital_status = forms.ChoiceField(
+    family_status = forms.ChoiceField(
         label='Marital Status',
         choices=[
             ('Single', 'Single'),
@@ -67,29 +70,17 @@ class CreditPredictionForm(forms.Form):
         ]
     )
 
-    # Time-related data
-    birth_years = forms.IntegerField(label='Age(years)', min_value=0)
-
-    employment_years = forms.IntegerField(label='Years Employed', min_value=0)
-    employment_months = forms.IntegerField(label='Months Employed', min_value=0, max_value=11)
-
-    # Flags
-    has_mobile = forms.ChoiceField(
+    mobil = forms.ChoiceField(
         label='Has Mobile Phone?',
         choices=[('Y', 'Yes'), ('N', 'No')],
         widget=forms.RadioSelect,
     )
-    has_work_phone = forms.ChoiceField(
+    work_phone = forms.ChoiceField(
         label='Has Work Phone?',
         choices=[('Y', 'Yes'), ('N', 'No')],
         widget=forms.RadioSelect,
     )
-    has_phone = forms.ChoiceField(
-        label='Has Phone?',
-        choices=[('Y', 'Yes'), ('N', 'No')],
-        widget=forms.RadioSelect,
-    )
-    has_email = forms.ChoiceField(
+    email = forms.ChoiceField(
         label='Has Email?',
         choices=[('Y', 'Yes'), ('N', 'No')],
         widget=forms.RadioSelect,
@@ -118,11 +109,9 @@ class CreditPredictionForm(forms.Form):
             ('Waiters', 'Waiters'),
         ]
     )
-    family_size = forms.IntegerField(label='Family Size', min_value=1)
-
     # Bank account ownership
     account_duration_years = forms.IntegerField(
-        label='Years Account Owned',
+        label='Bank account owner for: years',
         min_value=0,
         help_text='How long has the person owned an account at the bank?'
     )

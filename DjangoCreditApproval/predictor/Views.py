@@ -28,7 +28,7 @@ def predict_credit(request):
 
             # Prepare the data (ensure it is in the same format your model was trained on)
             data = np.array([[
-                form.cleaned_data['income'],  # Annual income (AMT_INCOME_TOTAL)
+                form.cleaned_data['annual_income'],  # Annual income (AMT_INCOME_TOTAL)
                 form.cleaned_data['age'],  # Age in years (DAYS_BIRTH)
                 form.cleaned_data['kids'],  # Number of children (CNT_CHILDREN)
                 1 if form.cleaned_data['car'] == 'Yes' else 0,  # Owns car (FLAG_OWN_CAR)
@@ -38,14 +38,14 @@ def predict_credit(request):
                 form.cleaned_data['family_status'],  # Family status (NAME_FAMILY_STATUS)
                 form.cleaned_data['housing_type'],  # Housing type (NAME_HOUSING_TYPE)
                 form.cleaned_data['age'] * 365,  # Birthday converted to days (DAYS_BIRTH)
-                form.cleaned_data['account_duration'] * 365,  # How long with bank in days (DAYS_EMPLOYED)
+                form.cleaned_data['account_duration_years'] * 365,  # How long with bank in days (DAYS_EMPLOYED)
                 1 if form.cleaned_data['mobil'] == 'Yes' else 0,  # Has mobile phone (FLAG_MOBIL)
                 1 if form.cleaned_data['work_phone'] == 'Yes' else 0,  # Has work phone (FLAG_WORK_PHONE)
-                1 if form.cleaned_data['phone'] == 'Yes' else 0,  # Has phone (FLAG_PHONE)
+                1 if form.cleaned_data['mobil'] == 'Yes' else 0,  # Has phone (FLAG_PHONE)
                 1 if form.cleaned_data['email'] == 'Yes' else 0,  # Has email (FLAG_EMAIL)
                 form.cleaned_data['occupation'],  # Occupation (OCCUPATION_TYPE)
-                form.cleaned_data['family_members'],  # Family size (CNT_FAM_MEMBERS)
-                form.cleaned_data['employment_duration'] * 30,
+                form.cleaned_data['family_size'],  # Family size (CNT_FAM_MEMBERS)
+                form.cleaned_data['employment_months'] * 30,
                 # Duration of employment (DAYS_EMPLOYED) converted to months
             ]])
             # Add other form fields here
