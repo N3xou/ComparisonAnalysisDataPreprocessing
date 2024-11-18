@@ -8,16 +8,10 @@ INSTALLED_APPS = [
     'predictor',
 ]
 
-from django import forms
-from django.shortcuts import render
-from .forms import CreditPredictionForm
-import joblib
 
-class CreditPredictionForm(forms.Form):
-    income = forms.FloatField(label='Income', min_value=0)
-    age = forms.IntegerField(label='Age', min_value=18)
-    # Add other fields that match your dataset
-    # e.g., gender = forms.ChoiceField(choices=[('male', 'Male'), ('female', 'Female')])
+from django.shortcuts import render
+from .Forms import CreditPredictionForm
+import joblib
 
 
 def predict_credit(request):
