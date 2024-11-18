@@ -14,12 +14,13 @@ from sklearn.model_selection import train_test_split,GridSearchCV
 from pathlib import Path
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
+import joblib
 
 
 # Creating dataframe, merging two dataframes into one on ID
 path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')
-applicationRecord = pd.read_csv(path / 'application_record_augmented.csv')
-creditRecord = pd.read_csv(path / 'credit_record_augmented.csv')
+applicationRecord = pd.read_csv(path / 'application_record.csv')
+creditRecord = pd.read_csv(path / 'credit_record.csv')
 
 credit_agg = creditRecord.groupby('ID').agg({
     'MONTHS_BALANCE': 'min',  # Earliest month balance with max(worst) status
@@ -424,4 +425,4 @@ print('Coefficients for SVM (absolute values, sorted):')
 print(feature_coef_svm)
 
 
-
+joblib.dump(modelDTC,'Credit_model_DTC.pkl')
