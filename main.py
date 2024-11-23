@@ -1,5 +1,6 @@
 # Imports
 import pandas as pd
+import time
 import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
@@ -348,7 +349,7 @@ model = CreditCardTorch(X_train.shape[1])
 criterion = nn.BCELoss()  # Binary Cross-Entropy Loss
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-epochs = 10000
+epochs = 1000
 for epoch in range(epochs):
     model.train()
     optimizer.zero_grad()
@@ -398,17 +399,91 @@ with torch.no_grad():
                 xticklabels=['Predicted Negative', 'Predicted Positive'],
                 yticklabels=['Actual Negative', 'Actual Positive'])
 
-modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
-fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
-fitModel(modelSVM,'Maszyna wektorów nośnych',X_train,y_train, show_roc=True,show_precision_recall=True)
 
 
-    # Set titles and labels
-    plt.title(f"Macierz pomyłek dla modelu biblioteki Pytorch")
-    plt.ylabel("Wartość rzeczywista")
-    plt.xlabel("Wartość przewidywana")
+# Set titles and labels
+plt.title(f"Macierz pomyłek dla modelu biblioteki Pytorch")
+plt.ylabel("Wartość rzeczywista")
+plt.xlabel("Wartość przewidywana")
 
     # Show the heatmap
+plt.show()
+
+
+# Tensorflow
+
+import tensorflow as tf
+
+
+def CreditCardTensor():
+    # Prepare the dataset (assuming X_train, X_test, y_train, y_test are already defined)
+
+
+    # Define the model
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(16, activation='relu', input_dim=X_train.shape[1]),
+        tf.keras.layers.Dense(8, activation='relu'),
+        tf.keras.layers.Dense(1, activation='sigmoid')
+    ])
+
+    # Compile the model
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+                  loss=tf.keras.losses.BinaryCrossentropy(),
+                  metrics=['accuracy'])
+
+    # Train the model
+    start_time = time.time()
+
+    model.fit(X_train_tensor, y_train_tensor, epochs=1000, batch_size=32, verbose=0)
+
+    end_time = time.time()
+    training_time = end_time - start_time
+    print(f"Training time: {training_time:.2f} seconds")
+
+    # Evaluate the model
+    start_time = time.time()
+
+    y_pred = model.predict(X_test_tensor)
+    y_pred_labels = (y_pred >= 0.5).astype(int)
+
+    end_time = time.time()
+    prediction_time = end_time - start_time
+    print(f"Prediction time: {prediction_time:.2f} seconds")
+    # Generate the confusion matrix
+    conf_matrix = confusion_matrix(y_test_tensor.numpy(), y_pred_labels)
+    tn, fp, fn, tp = conf_matrix.ravel()
+
+    print("Confusion Matrix:")
+    print(f"True Negatives (TN): {tn}")
+    print(f"False Positives (FP): {fp}")
+    print(f"False Negatives (FN): {fn}")
+    print(f"True Positives (TP): {tp}")
+
+    # Calculate accuracy, precision, recall, F1-score
+    accuracy = (tp + tn) / (tp + tn + fp + fn)
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+    print(f"Precision: {precision:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
+
+    # Normalize the confusion matrix for plotting
+    conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
+
+    # Plotting confusion matrix
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True,
+                xticklabels=['Predicted Negative', 'Predicted Positive'],
+                yticklabels=['Actual Negative', 'Actual Positive'])
+
+    plt.title("Confusion Matrix for TensorFlow Model")
+    plt.ylabel("Actual")
+    plt.xlabel("Predicted")
+
     plt.show()
 
 
+CreditCardTensor()
