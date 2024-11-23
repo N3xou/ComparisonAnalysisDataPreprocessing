@@ -4,7 +4,7 @@ import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, \
     accuracy_score
 import matplotlib.pyplot as plt
@@ -425,4 +425,107 @@ print('Coefficients for SVM (absolute values, sorted):')
 print(feature_coef_svm)
 
 
-joblib.dump(modelDTC,'Credit_model_DTC.pkl')
+#joblib.dump(modelDTC,'Credit_model_DTC.pkl')
+
+
+# PyTorch implementation
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class CreditCardTorch(nn.Module):
+    def __init__(self,dim):
+        super(CreditCardTorch, self).__init__()
+        self.fc1 = nn.Linear(dim, 16)
+        self.fc2 = nn.Linear(16, 8)
+        self.fc3 = nn.Linear(8, 1)
+        self.sigmoid = nn.Sigmoid()
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = self.fc3(x)
+        x = self.sigmoid(x)
+        return x
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
+y_train_tensor = torch.tensor(y_train.to_numpy(), dtype=torch.float32).view(-1, 1)
+y_test_tensor = torch.tensor(y_test, dtype=torch.float32).view(-1, 1)
+
+
+model = CreditCardTorch(X_train.shape[1])
+
+# Define loss and optimizer
+criterion = nn.BCELoss()  # Binary Cross-Entropy Loss
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+epochs = 10000
+for epoch in range(epochs):
+    model.train()
+    optimizer.zero_grad()
+    outputs = model(X_train_tensor)
+    loss = criterion(outputs, y_train_tensor)
+    loss.backward()
+    optimizer.step()
+
+    if (epoch + 1) % 100 == 0:
+        print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
+
+# Evaluate the model
+from sklearn.metrics import confusion_matrix
+
+# Evaluate the model
+model.eval()
+with torch.no_grad():
+    y_pred = model(X_test_tensor)
+    y_pred_labels = (y_pred >= 0.5).float()  # Threshold at 0.5
+
+    # Convert tensors to numpy arrays for confusion matrix
+    y_test_np = y_test_tensor.numpy()
+    y_pred_np = y_pred_labels.numpy()
+
+    # Generate the confusion matrix
+
+    conf_matrix = confusion_matrix(y_test_np, y_pred_np)
+    tn, fp, fn, tp = conf_matrix.ravel()
+    print("Confusion Matrix:")
+    print(f"True Negatives (TN): {tn}")
+    print(f"False Positives (FP): {fp}")
+    print(f"False Negatives (FN): {fn}")
+    print(f"True Positives (TP): {tp}")
+
+    # Calculate accuracy, precision, recall, F1-score
+    accuracy = (tp + tn) / (tp + tn + fp + fn)
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+    print(f"Precision: {precision:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
+
+    conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
+
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True,
+                xticklabels=['Predicted Negative', 'Predicted Positive'],
+                yticklabels=['Actual Negative', 'Actual Positive'])
+
+    # Set titles and labels
+    plt.title(f"Macierz pomyłek dla modelu biblioteki Pytorch")
+    plt.ylabel("Wartość rzeczywista")
+    plt.xlabel("Wartość przewidywana")
+
+    # Show the heatmap
+    plt.show()
+
+
+
+# todo: Ideas: 1. Comparison of scikit/pytorch/tensor 2. Comparison of accuracy at different time limits 3. Comparison

@@ -7,7 +7,7 @@ python manage.py startapp predictor
 INSTALLED_APPS = [
     'predictor',
 ]
-
+# todo: format data from strings into numbers for the model.
 
 from django.shortcuts import render
 import numpy as np
