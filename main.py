@@ -18,7 +18,7 @@ import joblib
 
 
 # Creating dataframe, merging two dataframes into one on ID
-path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')
+path = Path(r'C:\Users\Yami\PycharmProjects\PracaInz')
 applicationRecord = pd.read_csv(path / 'application_record.csv')
 creditRecord = pd.read_csv(path / 'credit_record.csv')
 
@@ -416,13 +416,13 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
 
-modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
-fitModel(modelSVM,'Maszyna wektorów nośnych',X_train, y_train, show_roc=True,show_precision_recall=True)
+#modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
+#fitModel(modelSVM,'Maszyna wektorów nośnych',X_train, y_train, show_roc=True,show_precision_recall=True)
 
-feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
+#feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
-print('Coefficients for SVM (absolute values, sorted):')
-print(feature_coef_svm)
+#print('Coefficients for SVM (absolute values, sorted):')
+#print(feature_coef_svm)
 
 
 #joblib.dump(modelDTC,'Credit_model_DTC.pkl')
@@ -476,9 +476,6 @@ for epoch in range(epochs):
 
     if (epoch + 1) % 100 == 0:
         print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
-
-# Evaluate the model
-from sklearn.metrics import confusion_matrix
 
 # Evaluate the model
 model.eval()
