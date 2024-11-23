@@ -109,39 +109,4 @@ conf_matrix_normalized = conf_matrix / np.sum(conf_matrix)
 
 
 
-#oe = OrdinalEncoder(categories=[['Low position job','Medium position job','High position job']])
-#df['Occupation'] = oe.fit_transform(df[['Occupation']]).astype(int)
-#print(df['Occupation'].unique())
-#oe = OrdinalEncoder(categories=[['Lower secondary', 'Secondary / secondary special', 'Incomplete higher', 'Higher education', 'Academic degree']])
-#df['Education_type'] = oe.fit_transform(df[['Education_type']]).astype(int)
-#print(df['Education_type'].unique())
-#oe = OrdinalEncoder(categories=[['lowest','low', 'medium', 'high', 'highest']])
-#df['num_cat_Income'] = oe.fit_transform(df[['cat_Income']]).astype(int)
-#print(df['cat_Income'].unique())
-#print(df['num_cat_Income'].unique())
-#oe = OrdinalEncoder(categories=[[ "lowest","low", "medium", "high","highest"]])
-#df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
-#print(df['cat_Employment_years'].unique())
-#print(df['num_cat_Employment_years'].unique())
 
-
-#modelDTC.fit(X_train_smote, y_train_smote)
-#y_pred = modelDTC.predict(X_test)
-#y_pred_proba = modelDTC.predict_proba(X_test)[:, 1]
-#y_pred_proba_adj = (y_pred_proba > 0.21).astype(int)
-#print('Accuracy Score is {:.5}'.format(accuracy_score(y_test, y_pred_proba_adj)))
-#print(pd.DataFrame(confusion_matrix(y_test,y_pred_proba_adj)))
-
-#conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize ='true')
-#print(pd.DataFrame(conf_matrix))
-
-#plt.figure(figsize=(6, 4))
-
-#sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
-
-#plt.title("Macierz pomyłek dla modelu drzewa decyzyjnego")
-#plt.ylabel("Etykieta rzeczywista")
-#plt.xlabel("Etykieta przewidywana")
-
-
-#plt.show()

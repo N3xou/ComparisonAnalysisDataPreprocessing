@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Result</title>
+</head>
+<body>
+    <h1>Prediction Result</h1>
+    <p>The client is: <strong>{{ result }}</strong></p>
+    <p>Confidence: <strong>{{ confidence }}%</strong></p>
+    <a href="{% url 'predict_credit' %}">Make another prediction</a>
+</body>
+</html>

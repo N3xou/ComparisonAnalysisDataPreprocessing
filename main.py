@@ -4,7 +4,7 @@ import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, \
     accuracy_score
 import matplotlib.pyplot as plt
@@ -14,14 +14,16 @@ from sklearn.model_selection import train_test_split,GridSearchCV
 from pathlib import Path
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
+
+import joblib
+
 from sklearn.preprocessing import StandardScaler
 
 scaler = StandardScaler()
 
 
-
 # Creating dataframe, merging two dataframes into one on ID
-path = Path(r'C:\Users\Yami\PycharmProjects\pythonProject1')
+path = Path(r'C:\Users\Yami\PycharmProjects\PracaInz')
 applicationRecord = pd.read_csv(path / 'application_record.csv')
 creditRecord = pd.read_csv(path / 'credit_record.csv')
 
@@ -93,7 +95,9 @@ def ivWoe(data, target, bins=10, show_woe=False):
             print(d)
     return newDF, woeDF
 
-def fitModel(model, name, x,y,adjustment = 0.3, show_matrix = True, show_roc = False,show_precision_recall = False):
+
+def fitModel(model, name,x, y,  adjustment = 0.3, show_matrix = True, show_roc = False,show_precision_recall = False):
+
     model.fit(x,y)
     y_pred = model.predict(X_test)
     y_pred_proba = model.predict_proba(X_test)[:, 1]
@@ -177,6 +181,10 @@ print(f'Datatypes\n{df.dtypes}')
 print(f'Shape{df.shape}')
 print(f'Missing data\n{df.isna().sum()}')
 
+
+print("Sample data:\n", df.head())
+
+
 msno.matrix(df,figsize=(18,9))
 plt.title('Macierz brakujących danych', fontsize=14)
 plt.xlabel('Kolumny', fontsize=12)
@@ -242,26 +250,30 @@ Y = df['target']
 print(X.shape)
 #X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
 
-#X_train_smote, y_train_smote = SMOTE().fit_resample(X_train, y_train)
+
+#X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
+
 Y = Y.astype('int')
 X_balance,Y_balance = SMOTE().fit_resample(X,Y)
 X_balance = pd.DataFrame(X_balance, columns = X.columns)
-
 X_train, X_test, y_train, y_test = train_test_split(X_balance,Y_balance,
                                                     stratify=Y_balance, test_size=0.3,
-                                                    random_state = 5)
+                                                    random_state = 10086)
 # LogisticRegression
 
 modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
-fitModel(modelReg,'Regresja Logistyczna',X_train,y_train,0.26)#, show_roc=True,show_precision_recall=True)
+fitModel(modelReg,'Regresja Logistyczna', X_train, y_train, 0.26, show_roc=True,show_precision_recall=True)
+
 feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 print('Coefficients for Logistic Regression')
 print(feature_coef)
 
 # decision tree
 modelDTC = DecisionTreeClassifier(max_depth=15,
-                               min_samples_split=8)
-fitModel(modelDTC,'Drzewo decyzyjne', X_train,y_train,0.21,)# show_roc=True,show_precision_recall=True)
+                         min_samples_split=8,
+                               random_state=1)
+fitModel(modelDTC,'Drzewo decyzyjne',X_train, y_train, 0.21, show_roc=True,show_precision_recall=True)
+
 
 # inspecting importances values for DecisionTree
 importancesDTC = modelDTC.feature_importances_
@@ -275,7 +287,9 @@ modelRFC = RandomForestClassifier(n_estimators=250,
                               max_depth=10,
                               min_samples_leaf=16
                               )
-fitModel(modelRFC,'Las losowy',X_train,y_train)#, show_roc=True,show_precision_recall=True)
+
+fitModel(modelRFC,'Las losowy',X_train, y_train, show_roc=True,show_precision_recall=True)
+
 
 importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
@@ -284,20 +298,117 @@ print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
 
+
+#modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
+#fitModel(modelSVM,'Maszyna wektorów nośnych',X_train, y_train, show_roc=True,show_precision_recall=True)
+
+#feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
+
+#print('Coefficients for SVM (absolute values, sorted):')
+#print(feature_coef_svm)
+
+
+#joblib.dump(modelDTC,'Credit_model_DTC.pkl')
+
+
+# PyTorch implementation
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class CreditCardTorch(nn.Module):
+    def __init__(self,dim):
+        super(CreditCardTorch, self).__init__()
+        self.fc1 = nn.Linear(dim, 16)
+        self.fc2 = nn.Linear(16, 8)
+        self.fc3 = nn.Linear(8, 1)
+        self.sigmoid = nn.Sigmoid()
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = self.fc3(x)
+        x = self.sigmoid(x)
+        return x
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
+y_train_tensor = torch.tensor(y_train.to_numpy(), dtype=torch.float32).view(-1, 1)
+y_test_tensor = torch.tensor(y_test, dtype=torch.float32).view(-1, 1)
+
+
+model = CreditCardTorch(X_train.shape[1])
+
+# Define loss and optimizer
+criterion = nn.BCELoss()  # Binary Cross-Entropy Loss
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+epochs = 10000
+for epoch in range(epochs):
+    model.train()
+    optimizer.zero_grad()
+    outputs = model(X_train_tensor)
+    loss = criterion(outputs, y_train_tensor)
+    loss.backward()
+    optimizer.step()
+
+    if (epoch + 1) % 100 == 0:
+        print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
+
+# Evaluate the model
+model.eval()
+with torch.no_grad():
+    y_pred = model(X_test_tensor)
+    y_pred_labels = (y_pred >= 0.5).float()  # Threshold at 0.5
+
+    # Convert tensors to numpy arrays for confusion matrix
+    y_test_np = y_test_tensor.numpy()
+    y_pred_np = y_pred_labels.numpy()
+
+    # Generate the confusion matrix
+
+    conf_matrix = confusion_matrix(y_test_np, y_pred_np)
+    tn, fp, fn, tp = conf_matrix.ravel()
+    print("Confusion Matrix:")
+    print(f"True Negatives (TN): {tn}")
+    print(f"False Positives (FP): {fp}")
+    print(f"False Negatives (FN): {fn}")
+    print(f"True Positives (TP): {tp}")
+
+    # Calculate accuracy, precision, recall, F1-score
+    accuracy = (tp + tn) / (tp + tn + fp + fn)
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+    print(f"Precision: {precision:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
+
+    conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
+
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True,
+                xticklabels=['Predicted Negative', 'Predicted Positive'],
+                yticklabels=['Actual Negative', 'Actual Positive'])
+
 modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
 fitModel(modelSVM,'Maszyna wektorów nośnych', show_roc=True,show_precision_recall=True)
 fitModel(modelSVM,'Maszyna wektorów nośnych',X_train,y_train, show_roc=True,show_precision_recall=True)
 
-feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
-print('Coefficients for SVM (absolute values, sorted):')
-print(feature_coef_svm)
+    # Set titles and labels
+    plt.title(f"Macierz pomyłek dla modelu biblioteki Pytorch")
+    plt.ylabel("Wartość rzeczywista")
+    plt.xlabel("Wartość przewidywana")
+
+    # Show the heatmap
+    plt.show()
 
 
-# todo: model optimalization, accuracy/recall is too low
-
-
-# todo: sprawdzic dane bez grupowania, wykorzystac foldy.
-
-# grupowanie, grupowac  te cechy ktore maja DUZY wplyw czy te ktore maja maly?
-# uczenie SVM trwa za dlugo
