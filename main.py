@@ -421,7 +421,7 @@ def CreditCardTensor():
 
     # Define the model
     model = tf.keras.Sequential([
-        tf.keras.layers.Dense(16, activation='relu', input_dim=X_train.shape[1]),
+        tf.keras.layers.Dense(16, activation='relu'),
         tf.keras.layers.Dense(8, activation='relu'),
         tf.keras.layers.Dense(1, activation='sigmoid')
     ])
@@ -487,3 +487,6 @@ def CreditCardTensor():
 
 
 CreditCardTensor()
+
+
+# todo: problems with tf.keras
