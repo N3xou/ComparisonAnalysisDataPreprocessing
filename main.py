@@ -344,12 +344,12 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.float32).view(-1, 1)
 
 
 model = CreditCardTorch(X_train.shape[1])
-
-# Define loss and optimizer
 criterion = nn.BCELoss()  # Binary Cross-Entropy Loss
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
+start_time = time.time()
 epochs = 1000
+max_training_time = 2
 for epoch in range(epochs):
     model.train()
     optimizer.zero_grad()
@@ -357,6 +357,11 @@ for epoch in range(epochs):
     loss = criterion(outputs, y_train_tensor)
     loss.backward()
     optimizer.step()
+
+    elapsed_time = time.time() - start_time
+    if elapsed_time > max_training_time:
+        print(f"Stopping training after {elapsed_time:.2f} seconds at epoch {epoch + 1}.")
+        break
 
     if (epoch + 1) % 100 == 0:
         print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
@@ -414,27 +419,39 @@ plt.show()
 
 import tensorflow as tf
 
+# Custom callback to stop training after a given time
+class TimeStopping(tf.keras.callbacks.Callback):
+    def __init__(self, max_duration):
+        super(TimeStopping, self).__init__()
+        self.max_duration = max_duration
+        self.start_time = None
+
+    def on_train_begin(self, logs=None):
+        self.start_time = time.time()
+
+    def on_epoch_end(self, epoch, logs=None):
+        elapsed_time = time.time() - self.start_time
+        if elapsed_time > self.max_duration:
+            print(f"Stopping training after {elapsed_time:.2f} seconds.")
+            self.model.stop_training = True
 
 def CreditCardTensor():
-    # Prepare the dataset (assuming X_train, X_test, y_train, y_test are already defined)
 
-
-    # Define the model
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(16, activation='relu'),
         tf.keras.layers.Dense(8, activation='relu'),
         tf.keras.layers.Dense(1, activation='sigmoid')
     ])
 
-    # Compile the model
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                   loss=tf.keras.losses.BinaryCrossentropy(),
                   metrics=['accuracy'])
 
-    # Train the model
+    # Checking the learning time to better compare with pytorch
+    timestop_callback = TimeStopping(max_duration = 2)
     start_time = time.time()
 
-    model.fit(X_train_tensor, y_train_tensor, epochs=1000, batch_size=32, verbose=0)
+    model.fit(X_train_tensor, y_train_tensor, epochs=10, batch_size=32, verbose=0, callbacks = [timestop_callback])
 
     end_time = time.time()
     training_time = end_time - start_time
@@ -489,4 +506,3 @@ def CreditCardTensor():
 CreditCardTensor()
 
 
-# todo: problems with tf.keras
