@@ -524,5 +524,40 @@ with torch.no_grad():
     plt.show()
 
 
+# pytorch
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class TimeAccuracyTracker:
+    def __init__(self, max_duration=10, interval=0.5):
+        self.max_duration = max_duration
+        self.interval = interval
+        self.times = []
+        self.accuracies = []
+
+    def track(self, epoch, accuracy):
+        elapsed_time = time.time() - self.start_time
+        if elapsed_time >= len(self.times) * self.interval:
+            self.times.append(elapsed_time)
+            self.accuracies.append(accuracy)
+
+    def start(self):
+        self.start_time = time.time()
+
+class CreditCardTorch(nn.Module):
+    def __init__(self,dim):
+        super(CreditCardTorch, self).__init__()
+        self.fc1 = nn.Linear(dim, 16)
+        self.fc2 = nn.Linear(16, 8)
+        self.fc3 = nn.Linear(8, 1)
+        self.sigmoid = nn.Sigmoid()
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = self.fc3(x)
+        x = self.sigmoid(x)
+        return x
 # todo: Ideas: 1. Comparison of scikit/pytorch/tensor 2. Comparison of accuracy at different time limits 3. Comparison
