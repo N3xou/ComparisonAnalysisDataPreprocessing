@@ -334,6 +334,7 @@ class TimeAccuracyTracker:
 
     def start(self):
         self.start_time = time.time()
+
 class CreditCardTorch(nn.Module):
     def __init__(self,dim):
         super(CreditCardTorch, self).__init__()
@@ -390,15 +391,7 @@ for epoch in range(epochs):
     if (epoch + 1) % 100 == 0:
         print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
 
-#plot
 
-plt.figure(figsize=(8, 6))
-plt.plot(time_tracker.times, time_tracker.accuracies, marker='o', linestyle='-', color='b')
-plt.title('Accuracy vs Time')
-plt.xlabel('Time (seconds)')
-plt.ylabel('Accuracy')
-plt.grid(True)
-plt.show()
 # Evaluate the model
 model.eval()
 with torch.no_grad():
@@ -488,22 +481,12 @@ def CreditCardTensor():
     time_callback = TimeAccuracyCallback(max_duration=10, interval=0.5)
     start_time = time.time()
 
-    model.fit(X_train_tensor, y_train_tensor, epochs=10, batch_size=32, verbose=0, callbacks = [time_callback])
+    model.fit(X_train_tensor, y_train_tensor, epochs=1000, batch_size=32, verbose=0, callbacks = [time_callback])
 
     end_time = time.time()
     training_time = end_time - start_time
     print(f"Training time: {training_time:.2f} seconds")
 
-
-    # plot time/acc
-
-    plt.figure(figsize=(8, 6))
-    plt.plot(time_callback.times, time_callback.accuracies, marker='o', linestyle='-', color='b')
-    plt.title('Accuracy vs Time')
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('Accuracy')
-    plt.grid(True)
-    plt.show()
     # Evaluate the model
     start_time = time.time()
 
@@ -548,8 +531,18 @@ def CreditCardTensor():
     plt.xlabel("Predicted")
 
     plt.show()
+    return time_callback
 
+time_callback = CreditCardTensor()
 
-CreditCardTensor()
+# plot time/acc
 
-
+plt.figure(figsize=(8, 6))
+plt.plot(time_tracker.times, time_tracker.accuracies, marker='o', linestyle='-', color='r', label='Pytorch')
+plt.plot(time_callback.times, time_callback.accuracies, marker='o', linestyle='-', color='b' , label='Tensor')
+plt.title('Accuracy vs Time')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid(True)
+plt.show()
