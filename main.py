@@ -319,6 +319,21 @@ import torch.nn as nn
 import torch.optim as optim
 
 
+class TimeAccuracyTracker:
+    def __init__(self, max_duration=10, interval=0.5):
+        self.max_duration = max_duration
+        self.interval = interval
+        self.times = []
+        self.accuracies = []
+
+    def track(self, epoch, accuracy):
+        elapsed_time = time.time() - self.start_time
+        if elapsed_time >= len(self.times) * self.interval:
+            self.times.append(elapsed_time)
+            self.accuracies.append(accuracy)
+
+    def start(self):
+        self.start_time = time.time()
 class CreditCardTorch(nn.Module):
     def __init__(self,dim):
         super(CreditCardTorch, self).__init__()
@@ -348,8 +363,11 @@ criterion = nn.BCELoss()  # Binary Cross-Entropy Loss
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 start_time = time.time()
-epochs = 1000
-max_training_time = 2
+epochs = 5000
+max_training_time = 10
+time_tracker = TimeAccuracyTracker(max_duration=10, interval=0.5)
+time_tracker.start()
+
 for epoch in range(epochs):
     model.train()
     optimizer.zero_grad()
@@ -359,13 +377,28 @@ for epoch in range(epochs):
     optimizer.step()
 
     elapsed_time = time.time() - start_time
-    if elapsed_time > max_training_time:
-        print(f"Stopping training after {elapsed_time:.2f} seconds at epoch {epoch + 1}.")
+    if time.time() - start_time > max_training_time:
+        print(f"Stopping training after {max_training_time} seconds at epoch {epoch + 1}.")
         break
+
+    with torch.no_grad():
+        outputs_labels = (outputs >= 0.5).float()
+        accuracy = (outputs_labels == y_train_tensor).float().mean().item()
+
+    time_tracker.track(epoch, accuracy)
 
     if (epoch + 1) % 100 == 0:
         print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
 
+#plot
+
+plt.figure(figsize=(8, 6))
+plt.plot(time_tracker.times, time_tracker.accuracies, marker='o', linestyle='-', color='b')
+plt.title('Accuracy vs Time')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Accuracy')
+plt.grid(True)
+plt.show()
 # Evaluate the model
 model.eval()
 with torch.no_grad():
@@ -419,22 +452,26 @@ plt.show()
 
 import tensorflow as tf
 
-# Custom callback to stop training after a given time
-class TimeStopping(tf.keras.callbacks.Callback):
-    def __init__(self, max_duration):
-        super(TimeStopping, self).__init__()
+# Custom callback to track time and accuracy every 0.5 seconds
+class TimeAccuracyCallback(tf.keras.callbacks.Callback):
+    def __init__(self, max_duration=10, interval=0.5):
+        super(TimeAccuracyCallback, self).__init__()
         self.max_duration = max_duration
-        self.start_time = None
+        self.interval = interval
+        self.times = []
+        self.accuracies = []
 
     def on_train_begin(self, logs=None):
         self.start_time = time.time()
 
     def on_epoch_end(self, epoch, logs=None):
         elapsed_time = time.time() - self.start_time
+        # Store accuracy and time every interval seconds
+        if elapsed_time >= len(self.times) * self.interval:
+            self.times.append(elapsed_time)
+            self.accuracies.append(logs['accuracy'])
         if elapsed_time > self.max_duration:
-            print(f"Stopping training after {elapsed_time:.2f} seconds.")
             self.model.stop_training = True
-
 def CreditCardTensor():
 
     model = tf.keras.Sequential([
@@ -448,15 +485,25 @@ def CreditCardTensor():
                   metrics=['accuracy'])
 
     # Checking the learning time to better compare with pytorch
-    timestop_callback = TimeStopping(max_duration = 2)
+    time_callback = TimeAccuracyCallback(max_duration=10, interval=0.5)
     start_time = time.time()
 
-    model.fit(X_train_tensor, y_train_tensor, epochs=10, batch_size=32, verbose=0, callbacks = [timestop_callback])
+    model.fit(X_train_tensor, y_train_tensor, epochs=10, batch_size=32, verbose=0, callbacks = [time_callback])
 
     end_time = time.time()
     training_time = end_time - start_time
     print(f"Training time: {training_time:.2f} seconds")
 
+
+    # plot time/acc
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(time_callback.times, time_callback.accuracies, marker='o', linestyle='-', color='b')
+    plt.title('Accuracy vs Time')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Accuracy')
+    plt.grid(True)
+    plt.show()
     # Evaluate the model
     start_time = time.time()
 
