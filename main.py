@@ -560,4 +560,97 @@ class CreditCardTorch(nn.Module):
         x = self.fc3(x)
         x = self.sigmoid(x)
         return x
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
+y_train_tensor = torch.tensor(y_train.to_numpy(), dtype=torch.float32).view(-1, 1)
+y_test_tensor = torch.tensor(y_test, dtype=torch.float32).view(-1, 1)
+
+
+model = CreditCardTorch(X_train.shape[1])
+criterion = nn.BCELoss()  # Binary Cross-Entropy Loss
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+start_time = time.time()
+epochs = 5000
+max_training_time = 10
+time_tracker = TimeAccuracyTracker(max_duration=10, interval=0.5)
+time_tracker.start()
+
+for epoch in range(epochs):
+    model.train()
+    optimizer.zero_grad()
+    outputs = model(X_train_tensor)
+    loss = criterion(outputs, y_train_tensor)
+    loss.backward()
+    optimizer.step()
+
+    elapsed_time = time.time() - start_time
+    if time.time() - start_time > max_training_time:
+        print(f"Stopping training after {max_training_time} seconds at epoch {epoch + 1}.")
+        break
+
+    with torch.no_grad():
+        outputs_labels = (outputs >= 0.5).float()
+        accuracy = (outputs_labels == y_train_tensor).float().mean().item()
+
+    time_tracker.track(epoch, accuracy)
+
+    if (epoch + 1) % 100 == 0:
+        print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
+
+
+# Evaluate the model
+model.eval()
+with torch.no_grad():
+    y_pred = model(X_test_tensor)
+    y_pred_labels = (y_pred >= 0.5).float()  # Threshold at 0.5
+
+    # Convert tensors to numpy arrays for confusion matrix
+    y_test_np = y_test_tensor.numpy()
+    y_pred_np = y_pred_labels.numpy()
+
+    # Generate the confusion matrix
+
+    conf_matrix = confusion_matrix(y_test_np, y_pred_np)
+    tn, fp, fn, tp = conf_matrix.ravel()
+    print("Confusion Matrix:")
+    print(f"True Negatives (TN): {tn}")
+    print(f"False Positives (FP): {fp}")
+    print(f"False Negatives (FN): {fn}")
+    print(f"True Positives (TP): {tp}")
+
+    # Calculate accuracy, precision, recall, F1-score
+    accuracy = (tp + tn) / (tp + tn + fp + fn)
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+    print(f"Precision: {precision:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
+
+    conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
+
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True,
+                xticklabels=['Predicted Negative', 'Predicted Positive'],
+                yticklabels=['Actual Negative', 'Actual Positive'])
+
+
+
+# Set titles and labels
+plt.title(f"Macierz pomyłek dla modelu biblioteki Pytorch")
+plt.ylabel("Wartość rzeczywista")
+plt.xlabel("Wartość przewidywana")
+
+    # Show the heatmap
+plt.show()
+
+
 # todo: Ideas: 1. Comparison of scikit/pytorch/tensor 2. Comparison of accuracy at different time limits 3. Comparison
