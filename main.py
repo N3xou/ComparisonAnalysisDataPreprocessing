@@ -1,6 +1,7 @@
 # Imports
 import pandas as pd
 import time
+import pickle
 import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
@@ -16,7 +17,6 @@ from pathlib import Path
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
 
-import joblib
 
 from sklearn.preprocessing import StandardScaler
 
@@ -393,7 +393,14 @@ for epoch in range(epochs):
 
 
 # Evaluate the model
+
 model.eval()
+
+
+with open('credit_card_model.pkl', 'wb') as f:
+    pickle.dump(model.state_dict(), f)
+
+print("Model saved to credit_card_model.pkl.")
 with torch.no_grad():
     y_pred = model(X_test_tensor)
     y_pred_labels = (y_pred >= 0.5).float()  # Threshold at 0.5
@@ -546,4 +553,6 @@ plt.ylabel('Accuracy')
 plt.legend()
 plt.grid(True)
 plt.show()
+
+# exporting model
 
