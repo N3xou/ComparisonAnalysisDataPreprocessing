@@ -65,4 +65,4 @@ def predict_credit(request):
     else:
         form = CreditPredictionForm()
 
-    return render(request, 'predict.html', {'form': form})
+    return render(request, 'predictor/predict.html', {'form': form})
