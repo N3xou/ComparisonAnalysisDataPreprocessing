@@ -9,22 +9,36 @@ INSTALLED_APPS = [
 ]
 # todo: format data from strings into numbers for the model.
 
+from .models import CreditCardTorch
 from django.shortcuts import render
 import numpy as np
+import pandas as pd
 from .Forms import CreditPredictionForm
 import joblib
+import os
+import torch
 
-
+def oneHot(df, feature, rank=0):
+    pos = pd.get_dummies(df[feature], prefix=feature)
+    mode = df[feature].value_counts().index[rank]
+    biggest = feature + '_' + str(mode)
+    pos.drop([biggest], axis=1, inplace=True)
+    df = df.join(pos)
+    return df
 def predict_credit(request):
     prediction = None
     accuracy = None
     confidence = None
 
+    model = CreditCardTorch(dim = 48)
+    model.load_state_dict(torch.load('credit_card_model.pth'))
+    model.eval()
     if request.method == 'POST':
         form = CreditPredictionForm(request.POST)
         if form.is_valid():
+
+
             # Process form data and run the prediction
-            model = joblib.load('Credit_model_DTC.pkl')  # Load your trained model
 
             # Prepare the data (ensure it is in the same format your model was trained on)
             data = np.array([[
@@ -45,24 +59,34 @@ def predict_credit(request):
                 1 if form.cleaned_data['email'] == 'Yes' else 0,  # Has email (FLAG_EMAIL)
                 form.cleaned_data['occupation'],  # Occupation (OCCUPATION_TYPE)
                 form.cleaned_data['family_size'],  # Family size (CNT_FAM_MEMBERS)
-                form.cleaned_data['employment_months'] * 30,
-                # Duration of employment (DAYS_EMPLOYED) converted to months
+                form.cleaned_data['employment_months'] * 30,  # Duration of employment (DAYS_EMPLOYED) converted to months
             ]])
-            # Add other form fields here
+            input_df = pd.DataFrame(data, columns=[
+                'annual_income', 'age', 'kids', 'car', 'realty', 'income_type', 'education_type', 'family_status',
+                'housing_type', 'age_in_days', 'account_duration_days', 'mobil', 'work_phone', 'phone', 'email',
+                'occupation', 'family_size', 'employment_duration_days'
+            ])
 
+            # Apply one-hot encoding to the categorical columns
+            onehot_cols = ['income_type', 'education_type', 'family_status', 'housing_type', 'occupation']
+            for col in onehot_cols:
+                input_df = oneHot(input_df, col)
+
+            # Drop original categorical columns as they are now encoded
+            input_df = input_df.drop(columns=onehot_cols)
+            data_tensor = torch.tensor(data, dtype=torch.float32)
             # Predict the result (binary: 1 or 0 for approved/rejected)
-            prediction = model.predict(data)[0]
-
-            # Calculate the prediction probability (confidence level)
-            confidence = model.predict_proba(data)[0][prediction] * 100  # Convert to percentage
+            with torch.no_grad():
+                output = model(data_tensor)
+                prediction = (output >= 0.5).float().item()  # Binary prediction (1 or 0)
+                confidence = output.sigmoid().item() * 100  # Get the probability and convert to percentage
 
             # Determine loan approval status
             result_text = 'Approved' if prediction == 1 else 'Rejected'
-
             # Return the result in the template
             return render(request, 'result.html', {'result': result_text, 'confidence': confidence})
 
     else:
         form = CreditPredictionForm()
 
-    return render(request, 'predict.html', {'form': form})
+    return render(request, 'predictor/predict.html', {'form': form})
