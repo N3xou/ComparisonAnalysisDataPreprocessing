@@ -15,6 +15,7 @@ from pathlib import Path
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
 import joblib
+import time
 
 
 # Creating dataframe, merging two dataframes into one on ID
