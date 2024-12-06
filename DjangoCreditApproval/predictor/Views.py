@@ -9,27 +9,35 @@ INSTALLED_APPS = [
 ]
 # todo: format data from strings into numbers for the model.
 
-from .models import CreditCardTorch  # Assuming CreditCardTorch is defined in models.py
+from .models import CreditCardTorch
 from django.shortcuts import render
 import numpy as np
+import pandas as pd
 from .Forms import CreditPredictionForm
 import joblib
 import os
 import torch
 
+def oneHot(df, feature, rank=0):
+    pos = pd.get_dummies(df[feature], prefix=feature)
+    mode = df[feature].value_counts().index[rank]
+    biggest = feature + '_' + str(mode)
+    pos.drop([biggest], axis=1, inplace=True)
+    df = df.join(pos)
+    return df
 def predict_credit(request):
     prediction = None
     accuracy = None
     confidence = None
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    model_path = os.path.join(BASE_DIR, 'predictor', 'credit_card_model.pth')  # Using .pth for the entire model
 
-    # Load the entire model
-    model = torch.load(model_path)
+    model = CreditCardTorch(dim = 48)
+    model.load_state_dict(torch.load('credit_card_model.pth'))
     model.eval()
     if request.method == 'POST':
         form = CreditPredictionForm(request.POST)
         if form.is_valid():
+
+
             # Process form data and run the prediction
 
             # Prepare the data (ensure it is in the same format your model was trained on)
@@ -53,6 +61,19 @@ def predict_credit(request):
                 form.cleaned_data['family_size'],  # Family size (CNT_FAM_MEMBERS)
                 form.cleaned_data['employment_months'] * 30,  # Duration of employment (DAYS_EMPLOYED) converted to months
             ]])
+            input_df = pd.DataFrame(data, columns=[
+                'annual_income', 'age', 'kids', 'car', 'realty', 'income_type', 'education_type', 'family_status',
+                'housing_type', 'age_in_days', 'account_duration_days', 'mobil', 'work_phone', 'phone', 'email',
+                'occupation', 'family_size', 'employment_duration_days'
+            ])
+
+            # Apply one-hot encoding to the categorical columns
+            onehot_cols = ['income_type', 'education_type', 'family_status', 'housing_type', 'occupation']
+            for col in onehot_cols:
+                input_df = oneHot(input_df, col)
+
+            # Drop original categorical columns as they are now encoded
+            input_df = input_df.drop(columns=onehot_cols)
             data_tensor = torch.tensor(data, dtype=torch.float32)
             # Predict the result (binary: 1 or 0 for approved/rejected)
             with torch.no_grad():
