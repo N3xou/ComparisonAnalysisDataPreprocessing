@@ -1,8 +1,21 @@
+"""
+pip install django
+django-admin startproject credit_prediction
+cd credit_prediction
+python manage.py startapp predictor
+"""
+INSTALLED_APPS = [
+    'predictor',
+]
+# todo: format data from strings into numbers for the model.
+
+from .models import CreditCardTorch  # Assuming CreditCardTorch is defined in models.py
+from django.shortcuts import render
+import numpy as np
+from .Forms import CreditPredictionForm
+import joblib
 import os
 import torch
-import numpy as np
-from django.shortcuts import render
-from Forms import CreditPredictionForm
 
 def predict_credit(request):
     prediction = None
@@ -13,12 +26,13 @@ def predict_credit(request):
 
     # Load the entire model
     model = torch.load(model_path)
-    model.eval()  # Set the model to evaluation mode
-
+    model.eval()
     if request.method == 'POST':
         form = CreditPredictionForm(request.POST)
         if form.is_valid():
             # Process form data and run the prediction
+
+            # Prepare the data (ensure it is in the same format your model was trained on)
             data = np.array([[
                 form.cleaned_data['annual_income'],  # Annual income (AMT_INCOME_TOTAL)
                 form.cleaned_data['age'],  # Age in years (DAYS_BIRTH)
@@ -39,14 +53,8 @@ def predict_credit(request):
                 form.cleaned_data['family_size'],  # Family size (CNT_FAM_MEMBERS)
                 form.cleaned_data['employment_months'] * 30,  # Duration of employment (DAYS_EMPLOYED) converted to months
             ]])
-
-            # Normalize the data here if you used any scaler during training
-            # e.g., data = scaler.transform(data)  # If you used StandardScaler
-
-            # Convert the input data to a PyTorch tensor
             data_tensor = torch.tensor(data, dtype=torch.float32)
-
-            # Make the prediction
+            # Predict the result (binary: 1 or 0 for approved/rejected)
             with torch.no_grad():
                 output = model(data_tensor)
                 prediction = (output >= 0.5).float().item()  # Binary prediction (1 or 0)
@@ -54,7 +62,6 @@ def predict_credit(request):
 
             # Determine loan approval status
             result_text = 'Approved' if prediction == 1 else 'Rejected'
-
             # Return the result in the template
             return render(request, 'result.html', {'result': result_text, 'confidence': confidence})
 
