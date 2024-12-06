@@ -1,32 +1,24 @@
-"""
-pip install django
-django-admin startproject credit_prediction
-cd credit_prediction
-python manage.py startapp predictor
-"""
-INSTALLED_APPS = [
-    'predictor',
-]
-# todo: format data from strings into numbers for the model.
-
-from django.shortcuts import render
+import os
+import torch
 import numpy as np
-from .Forms import CreditPredictionForm
-import joblib
-
+from django.shortcuts import render
+from Forms import CreditPredictionForm
 
 def predict_credit(request):
     prediction = None
     accuracy = None
     confidence = None
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    model_path = os.path.join(BASE_DIR, 'predictor', 'credit_card_model.pth')  # Using .pth for the entire model
+
+    # Load the entire model
+    model = torch.load(model_path)
+    model.eval()  # Set the model to evaluation mode
 
     if request.method == 'POST':
         form = CreditPredictionForm(request.POST)
         if form.is_valid():
             # Process form data and run the prediction
-            model = joblib.load('Credit_model_DTC.pkl')  # Load your trained model
-
-            # Prepare the data (ensure it is in the same format your model was trained on)
             data = np.array([[
                 form.cleaned_data['annual_income'],  # Annual income (AMT_INCOME_TOTAL)
                 form.cleaned_data['age'],  # Age in years (DAYS_BIRTH)
@@ -45,16 +37,20 @@ def predict_credit(request):
                 1 if form.cleaned_data['email'] == 'Yes' else 0,  # Has email (FLAG_EMAIL)
                 form.cleaned_data['occupation'],  # Occupation (OCCUPATION_TYPE)
                 form.cleaned_data['family_size'],  # Family size (CNT_FAM_MEMBERS)
-                form.cleaned_data['employment_months'] * 30,
-                # Duration of employment (DAYS_EMPLOYED) converted to months
+                form.cleaned_data['employment_months'] * 30,  # Duration of employment (DAYS_EMPLOYED) converted to months
             ]])
-            # Add other form fields here
 
-            # Predict the result (binary: 1 or 0 for approved/rejected)
-            prediction = model.predict(data)[0]
+            # Normalize the data here if you used any scaler during training
+            # e.g., data = scaler.transform(data)  # If you used StandardScaler
 
-            # Calculate the prediction probability (confidence level)
-            confidence = model.predict_proba(data)[0][prediction] * 100  # Convert to percentage
+            # Convert the input data to a PyTorch tensor
+            data_tensor = torch.tensor(data, dtype=torch.float32)
+
+            # Make the prediction
+            with torch.no_grad():
+                output = model(data_tensor)
+                prediction = (output >= 0.5).float().item()  # Binary prediction (1 or 0)
+                confidence = output.sigmoid().item() * 100  # Get the probability and convert to percentage
 
             # Determine loan approval status
             result_text = 'Approved' if prediction == 1 else 'Rejected'

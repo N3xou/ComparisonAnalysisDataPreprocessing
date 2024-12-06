@@ -396,11 +396,10 @@ for epoch in range(epochs):
 
 model.eval()
 
-
-with open('credit_card_model.pkl', 'wb') as f:
-    pickle.dump(model.state_dict(), f)
-
+# Saving the state dictionary
+torch.save(model, 'DjangoCreditApproval/predictor/credit_card_model.pkl')
 print("Model saved to credit_card_model.pkl.")
+
 with torch.no_grad():
     y_pred = model(X_test_tensor)
     y_pred_labels = (y_pred >= 0.5).float()  # Threshold at 0.5
