@@ -45,7 +45,10 @@ def predict_credit(request):
 
     # Create an empty DataFrame with the given columns
     df = pd.DataFrame(columns=columns)
-
+    for col in df.columns:
+        if df[col].dtype == 'object':  # Only cast object types to bool
+            df[col] = df[col].astype(bool)
+    df['Income'] = df['Income'].astype(float)
     model = CreditCardTorch(dim = 46)
     model.load_state_dict(torch.load('credit_card_model.pth'))
     model.eval()
@@ -232,13 +235,16 @@ def predict_credit(request):
 
             if form.data['family_status'] == 'Widow':
                 df['Family_status_Widow'] = True
-
+            print(df.dtypes)
             print(df.head())
-
-
+            df = pd.DataFrame([row])
+            for col in df.columns:
+                if df[col].dtype == 'bool':  # Only cast boolean columns
+                    df[col] = df[col].astype(int)
+            df_tensor = torch.tensor(df.values, dtype=torch.float32)
             # Predict the result (binary: 1 or 0 for approved/rejected)
             with torch.no_grad():
-                output = model(df)
+                output = model(df_tensor)
                 prediction = (output >= 0.5).float().item()  # Binary prediction (1 or 0)
                 confidence = output.sigmoid().item() * 100  # Get the probability and convert to percentage
 
