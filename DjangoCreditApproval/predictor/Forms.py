@@ -2,7 +2,7 @@ from django import forms
 
 class CreditPredictionForm(forms.Form):
     # Basic client information
-    client_id = forms.IntegerField(label='Client ID', min_value=1)
+    #client_id = forms.IntegerField(label='Client ID', min_value=1)
     gender = forms.ChoiceField(
         label='Gender',
         choices=[('M', 'Male'), ('F', 'Female')],

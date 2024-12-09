@@ -58,7 +58,6 @@ def predict_credit(request):
 
             data = np.array([[
                 form.cleaned_data['annual_income'],  # Annual income (AMT_INCOME_TOTAL)
-                form.cleaned_data['age'],  # Age in years (DAYS_BIRTH)
                 form.cleaned_data['kids'],  # Number of children (CNT_CHILDREN)
                 True if form.cleaned_data['car'] == 'Yes' else False,  # Owns car (FLAG_OWN_CAR)
                 True if form.cleaned_data['realty'] == 'Yes' else False,  # Owns property (FLAG_OWN_REALTY)
@@ -128,113 +127,124 @@ def predict_credit(request):
 
             df = df._append(row, ignore_index=True)
             # Set the selected income type column to True based on the user's input
-            if form.data['income_type'] == 'Working':
+            df['Children_count'] = form.cleaned_data['kids']
+            df['Income'] = form.cleaned_data['annual_income']
+            df['DAYS_BIRTH'] = form.cleaned_data['age']
+            df['DAYS_EMPLOYED'] = form.cleaned_data['employment_months']
+            df['Family_count'] = form.cleaned_data['family_size']
+            df['Starting_month'] = form.cleaned_data['account_duration_years']
+
+            if form.cleaned_data['income_type'] == 'Working':
                 df['Income_type_Working'] = True
 
-            if form.data['income_type'] == 'Commercial Associate':
+            if form.cleaned_data['income_type'] == 'Commercial Associate':
                 df['Income_type_Commercial associate'] = True
 
-            if form.data['income_type'] == 'Pensioner':
+            if form.cleaned_data['income_type'] == 'Pensioner':
                 df['Income_type_Pensioner'] = True
 
-            if form.data['income_type'] == 'State Servant':
+            if form.cleaned_data['income_type'] == 'State Servant':
                 df['Income_type_State servant'] = True
 
-            if form.data['income_type'] == 'Unemployed':
+            if form.cleaned_data['income_type'] == 'Unemployed':
                 df['Income_type_Unemployed'] = True
 
-            if form.data['income_type'] == 'Student':
+            if form.cleaned_data['income_type'] == 'Student':
                 df['Income_type_Student'] = True
 
-            if form.data['income_type'] == 'Other':
+            if form.cleaned_data['income_type'] == 'Other':
                 df['Income_type_Other'] = True
 
-            if form.data['education_type'] == 'Academic Degree':
+            if form.cleaned_data['education_type'] == 'Academic Degree':
                 df['Education_type_Academic degree'] = True
 
-            if form.data['education_type'] == 'Higher education':
+            if form.cleaned_data['education_type'] == 'Higher education':
                 df['Education_type_Higher education'] = True
 
-            if form.data['education_type'] == 'Incomplete higher':
+            if form.cleaned_data['education_type'] == 'Incomplete higher':
                 df['Education_type_Incomplete higher'] = True
 
-            if form.data['education_type'] == 'Lower secondary':
+            if form.cleaned_data['education_type'] == 'Lower secondary':
                 df['Education_type_Lower secondary'] = True
-            if form.data['housing_type'] == 'Co-op apartment':
+
+            if form.cleaned_data['housing_type'] == 'Co-op apartment':
                 df['Housing_type_Co-op apartment'] = True
 
-            if form.data['housing_type'] == 'Municipal apartment':
+            if form.cleaned_data['housing_type'] == 'Municipal apartment':
                 df['Housing_type_Municipal apartment'] = True
 
-            if form.data['housing_type'] == 'Office apartment':
+            if form.cleaned_data['housing_type'] == 'Office apartment':
                 df['Housing_type_Office apartment'] = True
 
-            if form.data['housing_type'] == 'Rented apartment':
+            if form.cleaned_data['housing_type'] == 'Rented apartment':
                 df['Housing_type_Rented apartment'] = True
 
-            if form.data['housing_type'] == 'With parents':
+            if form.cleaned_data['housing_type'] == 'With parents':
                 df['Housing_type_With parents'] = True
-            if form.data['occupation'] == 'Accountants':
+
+            if form.cleaned_data['occupation'] == 'Accountants':
                 df['Occupation_Accountants'] = True
 
-            if form.data['occupation'] == 'Cleaning staff':
+            if form.cleaned_data['occupation'] == 'Cleaning staff':
                 df['Occupation_Cleaning staff'] = True
 
-            if form.data['occupation'] == 'Cooking staff':
+            if form.cleaned_data['occupation'] == 'Cooking staff':
                 df['Occupation_Cooking staff'] = True
 
-            if form.data['occupation'] == 'Core staff':
+            if form.cleaned_data['occupation'] == 'Core staff':
                 df['Occupation_Core staff'] = True
 
-            if form.data['occupation'] == 'Drivers':
+            if form.cleaned_data['occupation'] == 'Drivers':
                 df['Occupation_Drivers'] = True
 
-            if form.data['occupation'] == 'HR staff':
+            if form.cleaned_data['occupation'] == 'HR staff':
                 df['Occupation_HR staff'] = True
 
-            if form.data['occupation'] == 'High skill tech staff':
+            if form.cleaned_data['occupation'] == 'High skill tech staff':
                 df['Occupation_High skill tech staff'] = True
 
-            if form.data['occupation'] == 'IT staff':
+            if form.cleaned_data['occupation'] == 'IT staff':
                 df['Occupation_IT staff'] = True
 
-            if form.data['occupation'] == 'Low-skill Laborers':
+            if form.cleaned_data['occupation'] == 'Low-skill Laborers':
                 df['Occupation_Low-skill Laborers'] = True
 
-            if form.data['occupation'] == 'Managers':
+            if form.cleaned_data['occupation'] == 'Managers':
                 df['Occupation_Managers'] = True
 
-            if form.data['occupation'] == 'Medicine staff':
+            if form.cleaned_data['occupation'] == 'Medicine staff':
                 df['Occupation_Medicine staff'] = True
 
-            if form.data['occupation'] == 'Private service staff':
+            if form.cleaned_data['occupation'] == 'Private service staff':
                 df['Occupation_Private service staff'] = True
 
-            if form.data['occupation'] == 'Realty agents':
+            if form.cleaned_data['occupation'] == 'Realty agents':
                 df['Occupation_Realty agents'] = True
 
-            if form.data['occupation'] == 'Sales staff':
+            if form.cleaned_data['occupation'] == 'Sales staff':
                 df['Occupation_Sales staff'] = True
 
-            if form.data['occupation'] == 'Secretaries':
+            if form.cleaned_data['occupation'] == 'Secretaries':
                 df['Occupation_Secretaries'] = True
 
-            if form.data['occupation'] == 'Security staff':
+            if form.cleaned_data['occupation'] == 'Security staff':
                 df['Occupation_Security staff'] = True
 
-            if form.data['occupation'] == 'Waiters/barmen staff':
+            if form.cleaned_data['occupation'] == 'Waiters/barmen staff':
                 df['Occupation_Waiters/barmen staff'] = True
-            if form.data['family_status'] == 'Civil marriage':
+
+            if form.cleaned_data['family_status'] == 'Civil marriage':
                 df['Family_status_Civil marriage'] = True
 
-            if form.data['family_status'] == 'Separated':
+            if form.cleaned_data['family_status'] == 'Separated':
                 df['Family_status_Separated'] = True
 
-            if form.data['family_status'] == 'Single / not married':
+            if form.cleaned_data['family_status'] == 'Single / not married':
                 df['Family_status_Single / not married'] = True
 
-            if form.data['family_status'] == 'Widow':
+            if form.cleaned_data['family_status'] == 'Widow':
                 df['Family_status_Widow'] = True
+            # todo: model predicts same results with same confidence
             print(df.dtypes)
             print(df.head())
             df = pd.DataFrame([row])
