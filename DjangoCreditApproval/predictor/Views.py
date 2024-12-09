@@ -30,17 +30,13 @@ def predict_credit(request):
     accuracy = None
     confidence = None
 
-    model = CreditCardTorch(dim = 48)
+    model = CreditCardTorch(dim = 31)
     model.load_state_dict(torch.load('credit_card_model.pth'))
     model.eval()
     if request.method == 'POST':
         form = CreditPredictionForm(request.POST)
         if form.is_valid():
 
-
-            # Process form data and run the prediction
-
-            # Prepare the data (ensure it is in the same format your model was trained on)
             data = np.array([[
                 form.cleaned_data['annual_income'],  # Annual income (AMT_INCOME_TOTAL)
                 form.cleaned_data['age'],  # Age in years (DAYS_BIRTH)
@@ -72,8 +68,10 @@ def predict_credit(request):
             for col in onehot_cols:
                 input_df = oneHot(input_df, col)
 
-            # Drop original categorical columns as they are now encoded
+            # Drop original categorical columns as they are now
+
             input_df = input_df.drop(columns=onehot_cols)
+            print(data.dtype)
             data_tensor = torch.tensor(data, dtype=torch.float32)
             # Predict the result (binary: 1 or 0 for approved/rejected)
             with torch.no_grad():
@@ -89,4 +87,4 @@ def predict_credit(request):
     else:
         form = CreditPredictionForm()
 
-    return render(request, 'predictor/predict.html', {'form': form})
+    return render(request, 'predict.html', {'form': form})
