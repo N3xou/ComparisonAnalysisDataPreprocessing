@@ -4,6 +4,8 @@ django-admin startproject credit_prediction
 cd credit_prediction
 python manage.py startapp predictor
 """
+from tensorflow.python.feature_column.feature_column_v2 import numeric_column
+
 INSTALLED_APPS = [
     'predictor',
 ]
@@ -57,21 +59,29 @@ def predict_credit(request):
                 form.cleaned_data['family_size'],  # Family size (CNT_FAM_MEMBERS)
                 form.cleaned_data['employment_months'] * 30,  # Duration of employment (DAYS_EMPLOYED) converted to months
             ]])
-            input_df = pd.DataFrame(data, columns=[
-                'annual_income', 'age', 'kids', 'car', 'realty', 'income_type', 'education_type', 'family_status',
-                'housing_type', 'age_in_days', 'account_duration_days', 'mobil', 'work_phone', 'phone', 'email',
-                'occupation', 'family_size', 'employment_duration_days'
+            numeric_columns = [0,1,2,3,4,9,10,11,12,13,14,16,17]
+            cat_columns = [5,6,7,8,15]
+            data_num = data[:, numeric_columns].astype(float)
+            data_cat = data[:, cat_columns]
+            print(data_cat.shape)
+            data_cat = pd.DataFrame(data_cat.T,columns=['income_type', 'education_type', 'family_status','housing_type', 'occupation'])
+            data_num = pd.DataFrame(data_num, columns=[
+                'annual_income', 'age', 'kids', 'car', 'realty', 'age_in_days', 'account_duration_days',
+                'mobil', 'work_phone', 'phone', 'email', 'family_size', 'employment_duration_days'
             ])
+
+            data = pd.concat([data_num, data_cat], axis=1)
 
             # Apply one-hot encoding to the categorical columns
             onehot_cols = ['income_type', 'education_type', 'family_status', 'housing_type', 'occupation']
             for col in onehot_cols:
-                input_df = oneHot(input_df, col)
+                data = oneHot(data, col)
 
             # Drop original categorical columns as they are now
 
             input_df = input_df.drop(columns=onehot_cols)
-            print(data.dtype)
+            for i, value in enumerate(data[0]):
+                print(f"Column {i}: {type(value)}")
             data_tensor = torch.tensor(data, dtype=torch.float32)
             # Predict the result (binary: 1 or 0 for approved/rejected)
             with torch.no_grad():
