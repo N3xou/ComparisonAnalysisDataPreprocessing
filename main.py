@@ -217,15 +217,19 @@ df['DAYS_EMPLOYED'] = abs(df['DAYS_EMPLOYED'])
 
 print(df['Starting_month'].unique())
 df['Starting_month'] = abs(df['Starting_month'])
-# buckets
 
-df['Income'] = scaler.fit_transform(df[['Income']])
-df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
+df['Work_phone'] = df['Work_phone'].astype(bool)
+df['Phone'] = df['Phone'].astype(bool)
+df['Email'] = df['Email'].astype(bool)
+df['Family_count'] = df['Family_count'].astype(int)
+df['Starting_month'] = df['Starting_month'].astype(int)
+#df['Income'] = scaler.fit_transform(df[['Income']])
+#df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
 
 df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
 df.loc[df['Family_count'] >= 5, 'Family_count'] = 5
 
-onehot_cols = ['Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status', 'Income']
+onehot_cols = ['Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status']
 for col in onehot_cols:
     df = oneHot(df, col)
 print(f'Datatypes\n{df.dtypes}')
@@ -241,12 +245,13 @@ df_for_iv = df.drop(columns = ['STATUS', 'ID'])
 ivWoe(df_for_iv, 'target', show_woe=True)
 
 # data for ML
-X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status',
-                       'Income'])
+X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status'])
 
 print(X.dtypes)
 Y = df['target']
-
+print('-------------------------------------')
+print('-------------------------------------')
+print('-------------------------------------')
 # Modeling
 
 print(X.shape)
@@ -261,6 +266,7 @@ X_balance = pd.DataFrame(X_balance, columns = X.columns)
 X_train, X_test, y_train, y_test = train_test_split(X_balance,Y_balance,
                                                     stratify=Y_balance, test_size=0.3,
                                                     random_state = 10086)
+
 # LogisticRegression
 
 modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
@@ -594,7 +600,8 @@ class CreditCardTorch(nn.Module):
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
-
+print(X_train.head())
+print('0--------------------------------')
 X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
 X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
 y_train_tensor = torch.tensor(y_train.to_numpy(), dtype=torch.float32).view(-1, 1)

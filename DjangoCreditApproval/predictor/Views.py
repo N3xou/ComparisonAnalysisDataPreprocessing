@@ -20,13 +20,43 @@ import joblib
 import os
 import torch
 
-def oneHot(df, feature, rank=0):
-    pos = pd.get_dummies(df[feature], prefix=feature)
-    mode = df[feature].value_counts().index[rank]
-    biggest = feature + '_' + str(mode)
-    pos.drop([biggest], axis=1, inplace=True)
-    df = df.join(pos)
-    return df
+columns = [
+    'Children_count', 'Income', 'DAYS_BIRTH', 'DAYS_EMPLOYED', 'Work_phone', 'Phone', 'Email',
+    'Family_count', 'Starting_month', 'Gender_M', 'Car_Y', 'Realty_N',
+    'Income_type_Commercial associate', 'Income_type_Pensioner', 'Income_type_State servant',
+    'Income_type_Student', 'Education_type_Academic degree', 'Education_type_Higher education',
+    'Education_type_Incomplete higher', 'Education_type_Lower secondary',
+    'Housing_type_Co-op apartment', 'Housing_type_Municipal apartment', 'Housing_type_Office apartment',
+    'Housing_type_Rented apartment', 'Housing_type_With parents', 'Occupation_Accountants',
+    'Occupation_Cleaning staff', 'Occupation_Cooking staff', 'Occupation_Core staff', 'Occupation_Drivers',
+    'Occupation_HR staff', 'Occupation_High skill tech staff', 'Occupation_IT staff', 'Occupation_Low-skill Laborers',
+    'Occupation_Managers', 'Occupation_Medicine staff', 'Occupation_Private service staff',
+    'Occupation_Realty agents', 'Occupation_Sales staff', 'Occupation_Secretaries', 'Occupation_Security staff',
+    'Occupation_Waiters/barmen staff', 'Family_status_Civil marriage', 'Family_status_Separated',
+    'Family_status_Single / not married', 'Family_status_Widow'
+]
+
+# Create an empty DataFrame with the given columns
+df = pd.DataFrame(columns=columns)
+
+# Set the boolean columns to False
+bool_columns = [
+    'Work_phone', 'Phone', 'Email', 'Gender_M', 'Car_Y', 'Realty_N', 'Income_type_Commercial associate',
+    'Income_type_Pensioner', 'Income_type_State servant', 'Income_type_Student', 'Education_type_Academic degree',
+    'Education_type_Higher education', 'Education_type_Incomplete higher', 'Education_type_Lower secondary',
+    'Housing_type_Co-op apartment', 'Housing_type_Municipal apartment', 'Housing_type_Office apartment',
+    'Housing_type_Rented apartment', 'Housing_type_With parents', 'Occupation_Accountants',
+    'Occupation_Cleaning staff', 'Occupation_Cooking staff', 'Occupation_Core staff', 'Occupation_Drivers',
+    'Occupation_HR staff', 'Occupation_High skill tech staff', 'Occupation_IT staff', 'Occupation_Low-skill Laborers',
+    'Occupation_Managers', 'Occupation_Medicine staff', 'Occupation_Private service staff',
+    'Occupation_Realty agents', 'Occupation_Sales staff', 'Occupation_Secretaries', 'Occupation_Security staff',
+    'Occupation_Waiters/barmen staff', 'Family_status_Civil marriage', 'Family_status_Separated',
+    'Family_status_Single / not married', 'Family_status_Widow'
+]
+
+# Set the boolean columns to False (initialization)
+df[bool_columns] = False
+
 def predict_credit(request):
     prediction = None
     accuracy = None
@@ -43,49 +73,56 @@ def predict_credit(request):
                 form.cleaned_data['annual_income'],  # Annual income (AMT_INCOME_TOTAL)
                 form.cleaned_data['age'],  # Age in years (DAYS_BIRTH)
                 form.cleaned_data['kids'],  # Number of children (CNT_CHILDREN)
-                1 if form.cleaned_data['car'] == 'Yes' else 0,  # Owns car (FLAG_OWN_CAR)
-                1 if form.cleaned_data['realty'] == 'Yes' else 0,  # Owns property (FLAG_OWN_REALTY)
+                True if form.cleaned_data['car'] == 'Yes' else False,  # Owns car (FLAG_OWN_CAR)
+                True if form.cleaned_data['realty'] == 'Yes' else False,  # Owns property (FLAG_OWN_REALTY)
                 form.cleaned_data['income_type'],  # Income category (NAME_INCOME_TYPE)
                 form.cleaned_data['education_type'],  # Education level (NAME_EDUCATION_TYPE)
                 form.cleaned_data['family_status'],  # Family status (NAME_FAMILY_STATUS)
                 form.cleaned_data['housing_type'],  # Housing type (NAME_HOUSING_TYPE)
                 form.cleaned_data['age'] * 365,  # Birthday converted to days (DAYS_BIRTH)
                 form.cleaned_data['account_duration_years'] * 365,  # How long with bank in days (DAYS_EMPLOYED)
-                1 if form.cleaned_data['mobil'] == 'Yes' else 0,  # Has mobile phone (FLAG_MOBIL)
-                1 if form.cleaned_data['work_phone'] == 'Yes' else 0,  # Has work phone (FLAG_WORK_PHONE)
-                1 if form.cleaned_data['mobil'] == 'Yes' else 0,  # Has phone (FLAG_PHONE)
-                1 if form.cleaned_data['email'] == 'Yes' else 0,  # Has email (FLAG_EMAIL)
+                True if form.cleaned_data['mobil'] == 'Yes' else False,  # Has mobile phone (FLAG_MOBIL)
+                True if form.cleaned_data['work_phone'] == 'Yes' else False,  # Has work phone (FLAG_WORK_PHONE)
+                True if form.cleaned_data['mobil'] == 'Yes' else False,  # Has phone (FLAG_PHONE)
+                True if form.cleaned_data['email'] == 'Yes' else False,  # Has email (FLAG_EMAIL)
                 form.cleaned_data['occupation'],  # Occupation (OCCUPATION_TYPE)
                 form.cleaned_data['family_size'],  # Family size (CNT_FAM_MEMBERS)
                 form.cleaned_data['employment_months'] * 30,  # Duration of employment (DAYS_EMPLOYED) converted to months
             ]])
-            numeric_columns = [0,1,2,3,4,9,10,11,12,13,14,16,17]
-            cat_columns = [5,6,7,8,15]
-            data_num = data[:, numeric_columns].astype(float)
-            data_cat = data[:, cat_columns]
-            print(data_cat.shape)
-            data_cat = pd.DataFrame(data_cat.T,columns=['income_type', 'education_type', 'family_status','housing_type', 'occupation'])
-            data_num = pd.DataFrame(data_num, columns=[
-                'annual_income', 'age', 'kids', 'car', 'realty', 'age_in_days', 'account_duration_days',
-                'mobil', 'work_phone', 'phone', 'email', 'family_size', 'employment_duration_days'
-            ])
+            default_row = {
+                'Children_count': 0,  # Default for children count
+                'Income': 0.0,  # Default for income
+                'DAYS_BIRTH': 0,  # Default for age in days
+                'DAYS_EMPLOYED': 0,  # Default for employment days
+                'Family_count': 0,  # Default for family count
+                'Starting_month': 1  # Default for starting month
+            }
+            dfs = df.append(default_row, ignore_index=True)
+            # Set the selected income type column to True based on the user's input
+            if form.cleaned_data['income_type'] == 'Working':
+                dfs['Income_type_Working'] = True
 
-            data = pd.concat([data_num, data_cat], axis=1)
+            if form.cleaned_data['income_type'] == 'Commercial Associate':
+                dfs['Income_type_Commercial associate'] = True
 
-            # Apply one-hot encoding to the categorical columns
-            onehot_cols = ['income_type', 'education_type', 'family_status', 'housing_type', 'occupation']
-            for col in onehot_cols:
-                data = oneHot(data, col)
+            if form.cleaned_data['income_type'] == 'Pensioner':
+                dfs['Income_type_Pensioner'] = True
 
-            # Drop original categorical columns as they are now
+            if form.cleaned_data['income_type'] == 'State Servant':
+                dfs['Income_type_State servant'] = True
 
-            input_df = input_df.drop(columns=onehot_cols)
-            for i, value in enumerate(data[0]):
-                print(f"Column {i}: {type(value)}")
-            data_tensor = torch.tensor(data, dtype=torch.float32)
+            if form.cleaned_data['income_type'] == 'Unemployed':
+                dfs['Income_type_Unemployed'] = True
+
+            if form.cleaned_data['income_type'] == 'Student':
+                dfs['Income_type_Student'] = True
+
+            if form.cleaned_data['income_type'] == 'Other':
+                dfs['Income_type_Other'] = True
+            print(dfs.head())
             # Predict the result (binary: 1 or 0 for approved/rejected)
             with torch.no_grad():
-                output = model(data_tensor)
+                output = model(dfs)
                 prediction = (output >= 0.5).float().item()  # Binary prediction (1 or 0)
                 confidence = output.sigmoid().item() * 100  # Get the probability and convert to percentage
 
