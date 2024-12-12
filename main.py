@@ -6,7 +6,6 @@ import numpy as np
 import missingno as msno
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, \
     accuracy_score
 import matplotlib.pyplot as plt
@@ -19,7 +18,6 @@ from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
-import joblib
 import time
 
 
@@ -253,12 +251,8 @@ print('-------------------------------------')
 print('-------------------------------------')
 print('-------------------------------------')
 # Modeling
-
+.
 print(X.shape)
-#X_train, X_test, y_train, y_test = train_test_split(X, Y, stratify=Y, test_size=0.25, random_state=1)
-
-
-#X_train_smote, y_train_smote = SMOTE(random_state=1 ).fit_resample(X_train, y_train)
 
 Y = Y.astype('int')
 X_balance,Y_balance = SMOTE().fit_resample(X,Y)
