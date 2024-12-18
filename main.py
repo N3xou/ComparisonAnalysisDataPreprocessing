@@ -203,7 +203,7 @@ df = df.dropna()
 
 print(f"Dropping duplicates, amount of unique rows: {df['ID'].nunique()}")
 df.drop_duplicates('ID', keep='last')
-
+.
 # dropping Mobile because all values equal 1
 
 df.drop(columns=['Mobile'], inplace=True)
@@ -251,7 +251,7 @@ print('-------------------------------------')
 print('-------------------------------------')
 print('-------------------------------------')
 # Modeling
-..
+
 print(X.shape)
 
 Y = Y.astype('int')
