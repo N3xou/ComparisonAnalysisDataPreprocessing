@@ -225,6 +225,27 @@ df['Starting_month'] = df['Starting_month'].astype(int)
 if (cat == 1):
     df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
     df = categorize(df, 'Age', 3, ["young adult", "mature", "elder"], qcut=True, replace=False)
+    df.loc[(df['Occupation'] == 'Waiters/barmen staff') |
+           (df['Occupation'] == 'Cleaning staff') |
+           (df['Occupation'] == 'Cooking staff') |
+           (df['Occupation'] == 'Low-skill Laborers') |
+           (df['Occupation'] == 'Security staff') |
+           (df['Occupation'] == 'Drivers') |
+           (df['Occupation'] == 'Secretaries'), 'Occupation'
+    ] = 'Low position job'
+    df.loc[(df['Occupation'] == 'Sales staff') |
+           (df['Occupation'] == 'Accountants') |
+           (df['Occupation'] == 'Laborers') |
+           (df['Occupation'] == 'Core staff') |
+           (df['Occupation'] == 'Private service staff') |
+           (df['Occupation'] == 'Medicine staff') |
+           (df['Occupation'] == 'HR staff') |
+           (df['Occupation'] == 'Realty agents'), 'Occupation'
+    ] = 'Medium position job'
+    df.loc[(df['Occupation'] == 'Managers') |
+           (df['Occupation'] == 'High skill tech staff') |
+           (df['Occupation'] == 'IT staff'), 'Occupation'
+    ] = 'High position job'
 
 df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
 df.loc[df['Family_count'] >= 5, 'Family_count'] = 5
