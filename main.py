@@ -222,6 +222,10 @@ df['Email'] = df['Email'].astype(bool)
 df['Family_count'] = df['Family_count'].astype(int)
 df['Starting_month'] = df['Starting_month'].astype(int)
 #df['Income'] = scaler.fit_transform(df[['Income']])
+print('CHILDREN COUNT AND FAMILY ------------')
+print(df['Children_count'].value_counts())
+print(df['Family_count'].value_counts())
+
 if (cat == 1):
     df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
     df = categorize(df, 'Age', 3, ["young adult", "mature", "elder"], qcut=True, replace=False)
@@ -246,9 +250,9 @@ if (cat == 1):
            (df['Occupation'] == 'High skill tech staff') |
            (df['Occupation'] == 'IT staff'), 'Occupation'
     ] = 'High position job'
+    df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
+    df.loc[df['Family_count'] >= 5, 'Family_count'] = 5
 
-df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
-df.loc[df['Family_count'] >= 5, 'Family_count'] = 5
 
 onehot_cols = ['Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status']
 for col in onehot_cols:
