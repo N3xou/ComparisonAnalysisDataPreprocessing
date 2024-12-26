@@ -20,7 +20,7 @@ from sklearn.preprocessing import StandardScaler,LabelEncoder, OrdinalEncoder
 scaler = StandardScaler()
 import time
 
-cat = 0;
+cat = 0
 
 # Creating dataframe, merging two dataframes into one on ID
 path = Path(r'C:\Users\Yami\PycharmProjects\PracaInz')
