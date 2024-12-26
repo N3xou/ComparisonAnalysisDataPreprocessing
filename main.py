@@ -20,7 +20,7 @@ from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 import time
 
-
+cat = 0;
 
 # Creating dataframe, merging two dataframes into one on ID
 path = Path(r'C:\Users\Yami\PycharmProjects\PracaInz')
@@ -222,7 +222,9 @@ df['Email'] = df['Email'].astype(bool)
 df['Family_count'] = df['Family_count'].astype(int)
 df['Starting_month'] = df['Starting_month'].astype(int)
 #df['Income'] = scaler.fit_transform(df[['Income']])
-#df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
+if (cat == 1):
+    df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
+    df = categorize(df, 'Age', 3, ["young adult", "mature", "elder"], qcut=True, replace=False)
 
 df.loc[df['Children_count'] >= 3, 'Children_count'] = 3
 df.loc[df['Family_count'] >= 5, 'Family_count'] = 5
