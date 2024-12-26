@@ -16,7 +16,7 @@ from pathlib import Path
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
 
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler,LabelEncoder, OrdinalEncoder
 scaler = StandardScaler()
 import time
 
@@ -38,12 +38,13 @@ df.rename(columns = {'CODE_GENDER':'Gender', 'FLAG_OWN_CAR' : 'Car', 'FLAG_OWN_R
                      'NAME_FAMILY_STATUS' : 'Family_status', 'NAME_HOUSING_TYPE':'Housing_type','FLAG_MOBIL' : 'Mobile',
                      'FLAG_WORK_PHONE' : 'Work_phone', 'FLAG_PHONE' : 'Phone', 'FLAG_EMAIL' : 'Email', 'OCCUPATION_TYPE': 'Occupation',
                      'CNT_FAM_MEMBERS' : 'Family_count', 'MONTHS_BALANCE' : 'Starting_month'}, inplace=True)
-def oneHot(df, feature, rank = 0):
+def oneHot(df, feature, rank = 0,drop = False):
     pos = pd.get_dummies(df[feature], prefix=feature)
     mode = df[feature].value_counts().index[rank]
     biggest = feature + '_' + str(mode)
     pos.drop([biggest], axis=1, inplace=True)
-    #df.drop([feature], axis=1, inplace=True)
+    if drop:
+        df.drop([feature], axis=1, inplace=True)
     df = df.join(pos)
     return df
 
@@ -258,6 +259,18 @@ onehot_cols = ['Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Hous
 for col in onehot_cols:
     df = oneHot(df, col)
 print(f'Datatypes\n{df.dtypes}')
+
+df_encoded = df.copy()
+label_cols = ['Gender','Car','Realty']
+for col in label_cols:
+    le = LabelEncoder()
+    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+    df_encoded[col] = le.fit_transform(df_encoded[col])
+    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+df = df_encoded
+
+oe = OrdinalEncoder(categories=[['highest', 'high', 'medium', 'low', 'lowest']])
+df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
 
 ###### GRAPHS
 
