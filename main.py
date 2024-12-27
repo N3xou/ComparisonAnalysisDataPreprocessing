@@ -97,8 +97,7 @@ def ivWoe(data, target, bins=10, show_woe=False):
     return newDF, woeDF
 
 
-def fitModel(model, name,x, y,  adjustment = 0.3, show_matrix = True, show_roc = False,show_precision_recall = False):
-
+def fitModel(model, name,x, y, X_test, y_test,  adjustment = 0.5, show_matrix = True, show_roc = False,show_precision_recall = False):
     model.fit(x,y)
     y_pred = model.predict(X_test)
     y_pred_proba = model.predict_proba(X_test)[:, 1]
@@ -132,7 +131,6 @@ def fitModel(model, name,x, y,  adjustment = 0.3, show_matrix = True, show_roc =
         plt.show()
     if show_precision_recall:
         precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
-
         plt.figure(figsize=(6, 4))
         plt.plot(recall, precision, label='Krzywa precyzji i czułości')
         plt.xlabel('Czułość')
@@ -260,17 +258,17 @@ for col in onehot_cols:
     df = oneHot(df, col)
 print(f'Datatypes\n{df.dtypes}')
 
-df_encoded = df.copy()
-label_cols = ['Gender','Car','Realty']
-for col in label_cols:
-    le = LabelEncoder()
-    print(f"Unique values in {col}: {df_encoded[col].unique()}")
-    df_encoded[col] = le.fit_transform(df_encoded[col])
-    print(f"Unique values in {col}: {df_encoded[col].unique()}")
-df = df_encoded
+#df_encoded = df.copy()
+#label_cols = ['Gender','Car','Realty']
+#for col in label_cols:
+#    le = LabelEncoder()
+#    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+#    df_encoded[col] = le.fit_transform(df_encoded[col])
+#    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+#df = df_encoded
 
-oe = OrdinalEncoder(categories=[['highest', 'high', 'medium', 'low', 'lowest']])
-df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
+#oe = OrdinalEncoder(categories=[['highest', 'high', 'medium', 'low', 'lowest']])
+#df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
 
 ###### GRAPHS
 
@@ -304,7 +302,7 @@ X_train, X_test, y_train, y_test = train_test_split(X_balance,Y_balance,
 # LogisticRegression
 
 modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
-fitModel(modelReg,'Regresja Logistyczna', X_train, y_train, 0.26, show_roc=True,show_precision_recall=True)
+fitModel(modelReg,'Regresja Logistyczna', X_train, y_train,X_test, y_test, 0.26, show_roc=True,show_precision_recall=True)
 
 feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 print('Coefficients for Logistic Regression')
@@ -314,7 +312,7 @@ print(feature_coef)
 modelDTC = DecisionTreeClassifier(max_depth=15,
                          min_samples_split=8,
                                random_state=1)
-fitModel(modelDTC,'Drzewo decyzyjne',X_train, y_train, 0.21, show_roc=True,show_precision_recall=True)
+fitModel(modelDTC,'Drzewo decyzyjne',X_train, y_train,X_test, y_test, 0.21, show_roc=True,show_precision_recall=True)
 
 
 # inspecting importances values for DecisionTree
@@ -324,13 +322,10 @@ print('Importances for DTC')
 print(sorted(zip(importancesDTC, feature_names), reverse=True))
 
 # random forest
-
 modelRFC = RandomForestClassifier(n_estimators=250,
                               max_depth=10,
-                              min_samples_leaf=16
-                              )
-
-fitModel(modelRFC,'Las losowy',X_train, y_train, show_roc=True,show_precision_recall=True)
+                              min_samples_leaf=16)
+fitModel(modelRFC,'Las losowy',X_train, y_train,X_test, y_test, show_roc=True,show_precision_recall=True)
 
 
 importancesRFC = modelRFC.feature_importances_
@@ -339,10 +334,8 @@ print('Importances for RFC')
 print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
-
-
-#modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
-#fitModel(modelSVM,'Maszyna wektorów nośnych',X_train, y_train, show_roc=True,show_precision_recall=True)
+modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
+fitModel(modelSVM,'Maszyna wektorów nośnych',X_train[:50], y_train[:50],X_test[:50], y_test[:50], show_roc=True,show_precision_recall=True)
 
 #feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
@@ -529,7 +522,7 @@ def CreditCardTensor():
     time_callback = TimeAccuracyCallback(max_duration=10, interval=0.5)
     start_time = time.time()
 
-    model.fit(X_train_tensor, y_train_tensor, epochs=1000, batch_size=32, verbose=0, callbacks = [time_callback])
+    model.fit(X_train_tensor, y_train_tensor, epochs=5000, batch_size=32, verbose=0, callbacks = [time_callback])
 
     end_time = time.time()
     training_time = end_time - start_time
