@@ -98,11 +98,14 @@ def ivWoe(data, target, bins=10, show_woe=False):
 
 
 def fitModel(model, name,x, y, X_test, y_test,  adjustment = 0.5, show_matrix = True, show_roc = False,show_precision_recall = False):
-    model.fit(x,y)
+    start_time = time.time()
+    model.fit(x, y)
+    training_time = time.time() - start_time
     y_pred = model.predict(X_test)
     y_pred_proba = model.predict_proba(X_test)[:, 1]
     y_pred_proba_adj = (y_pred_proba > adjustment).astype(int)
-    print('Dokładność dla {} wynosi {:.5}'.format(name,accuracy_score(y_test, y_pred_proba_adj)))
+    accuracy = accuracy_score(y_test, y_pred_proba_adj)
+    print('Dokładność dla {} wynosi {:.5}'.format(name,accuracy))
     print(pd.DataFrame(confusion_matrix(y_test, y_pred_proba_adj)))
     conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize='true')
     print(pd.DataFrame(conf_matrix))
@@ -138,6 +141,7 @@ def fitModel(model, name,x, y, X_test, y_test,  adjustment = 0.5, show_matrix = 
         plt.title('Krzywa precyzji i czułości')
         plt.show()
     print('-------Success-------')
+    return accuracy,training_time
 
 ## feature engineering
 print(creditRecord['STATUS'].unique())
@@ -299,11 +303,12 @@ X_train, X_test, y_train, y_test = train_test_split(X_balance,Y_balance,
                                                     stratify=Y_balance, test_size=0.3,
                                                     random_state = 10086)
 
+scores = []
 # LogisticRegression
 
 modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
-fitModel(modelReg,'Regresja Logistyczna', X_train, y_train,X_test, y_test, 0.26, show_roc=True,show_precision_recall=True)
-
+LR_accuracy, LR_time = fitModel(modelReg,'Regresja logistyczna', X_train, y_train,X_test, y_test, 0.26, show_roc=True,show_precision_recall=True)
+scores.append(('Regresja logistyczna',LR_accuracy,LR_time))
 feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 print('Coefficients for Logistic Regression')
 print(feature_coef)
@@ -312,8 +317,8 @@ print(feature_coef)
 modelDTC = DecisionTreeClassifier(max_depth=15,
                          min_samples_split=8,
                                random_state=1)
-fitModel(modelDTC,'Drzewo decyzyjne',X_train, y_train,X_test, y_test, 0.21, show_roc=True,show_precision_recall=True)
-
+DTC_accuracy, DTC_time = fitModel(modelDTC,'Drzewo decyzyjne',X_train, y_train,X_test, y_test, 0.21, show_roc=True,show_precision_recall=True)
+scores.append(('Drzewo decyzyjne',DTC_accuracy,DTC_time))
 
 # inspecting importances values for DecisionTree
 importancesDTC = modelDTC.feature_importances_
@@ -325,8 +330,8 @@ print(sorted(zip(importancesDTC, feature_names), reverse=True))
 modelRFC = RandomForestClassifier(n_estimators=250,
                               max_depth=10,
                               min_samples_leaf=16)
-fitModel(modelRFC,'Las losowy',X_train, y_train,X_test, y_test, show_roc=True,show_precision_recall=True)
-
+RFC_accuracy, RFC_time = fitModel(modelRFC,'Las losowy',X_train, y_train,X_test, y_test, show_roc=True,show_precision_recall=True)
+scores.append(('Las losowy',RFC_accuracy,RFC_time))
 
 importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
@@ -334,9 +339,9 @@ print('Importances for RFC')
 print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
-modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
-fitModel(modelSVM,'Maszyna wektorów nośnych',X_train[:50], y_train[:50],X_test[:50], y_test[:50], show_roc=True,show_precision_recall=True)
-
+modelSVM = svm.SVC(C = 0.001, kernel='linear', probability=True)
+SVM_accuracy , SVM_time = fitModel(modelSVM,'Maszyna wektorów nośnych',X_train, y_train,X_test, y_test, show_roc=True,show_precision_recall=True)
+scores.append(('Maszyna wektorów nośnych',SVM_accuracy,SVM_time))
 #feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
 #print('Coefficients for SVM (absolute values, sorted):')
