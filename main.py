@@ -21,7 +21,7 @@ scaler = StandardScaler()
 import time
 
 cat = 0
-
+grid = 0
 # Creating dataframe, merging two dataframes into one on ID
 path = Path(r'C:\Users\Yami\PycharmProjects\PracaInz')
 applicationRecord = pd.read_csv(path / 'application_record.csv')
@@ -303,20 +303,71 @@ X_train, X_test, y_train, y_test = train_test_split(X_balance,Y_balance,
                                                     stratify=Y_balance, test_size=0.3,
                                                     random_state = 10086)
 
+if grid == 1:
+    param_grid = {
+        'C': [0.01, 0.1, 1, 10, 100],  # Regularization strength
+        'solver': ['liblinear', 'saga'],  # Solvers
+        'class_weight': [None, 'balanced'],  # class imbalance handling
+    }
+    modelReg = LogisticRegression(random_state=1)
+    grid_search = GridSearchCV(estimator=modelReg, param_grid=param_grid,
+                               cv=5, n_jobs=-1, verbose=1, scoring='accuracy')
+    grid_search.fit(X_train, y_train)
+
+    # Wyniki GridSearchCV
+    print("Najlepsze parametry:", grid_search.best_params_)
+    print("Najlepsza dokładność:", grid_search.best_score_)
+    param_grid = {
+        'max_depth': [None, 10, 20, 30],  # Maksymalna głębokość drzewa
+        'min_samples_split': [2, 5, 10],  # Minimalna liczba próbek do podziału węzła
+        'min_samples_leaf': [1, 2, 4],  # Minimalna liczba próbek w liściu
+        'criterion': ['gini', 'entropy'],  # Kryterium podziału
+    }
+    from sklearn.tree import DecisionTreeClassifier
+
+    model = DecisionTreeClassifier(random_state=1)
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid,
+                               cv=5, n_jobs=-1, verbose=1, scoring='accuracy')
+    grid_search.fit(X_train, y_train)
+
+    # Wyniki GridSearchCV
+    print("Najlepsze parametry dla DecisionTreeClassifier:", grid_search.best_params_)
+    print("Najlepsza dokładność dla DecisionTreeClassifier:", grid_search.best_score_)
+    if grid == 1:
+        param_grid = {
+            'n_estimators': [50, 100, 200],  # Liczba drzew w lesie
+            'max_depth': [None, 10, 20, 30],  # Maksymalna głębokość drzewa
+            'min_samples_split': [2, 5, 10],  # Minimalna liczba próbek do podziału węzła
+            'min_samples_leaf': [1, 2, 4],  # Minimalna liczba próbek w liściu
+            'bootstrap': [True, False],  # Czy stosować bootstrap
+        }
+        from sklearn.ensemble import RandomForestClassifier
+
+        model = RandomForestClassifier(random_state=1)
+        grid_search = GridSearchCV(estimator=model, param_grid=param_grid,
+                                   cv=5, n_jobs=-1, verbose=1, scoring='accuracy')
+        grid_search.fit(X_train, y_train)
+
+        # Wyniki GridSearchCV
+        print("Najlepsze parametry dla RandomForestClassifier:", grid_search.best_params_)
+        print("Najlepsza dokładność dla RandomForestClassifier:", grid_search.best_score_)
+
 scores = []
 # LogisticRegression
 
-modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
+modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=100)
 LR_accuracy, LR_time = fitModel(modelReg,'Regresja logistyczna', X_train, y_train,X_test, y_test, 0.26)#, show_roc=True,show_precision_recall=True)
 scores.append(('Regresja logistyczna',LR_accuracy,LR_time))
 feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 print('Coefficients for Logistic Regression')
 print(feature_coef)
 
+
 # decision tree
-modelDTC = DecisionTreeClassifier(max_depth=15,
-                         min_samples_split=8,
-                               random_state=1)
+modelDTC = DecisionTreeClassifier(max_depth=30,
+                         min_samples_split=2,
+                         min_samples_leaf = 1,
+                        random_state=1)
 DTC_accuracy, DTC_time = fitModel(modelDTC,'Drzewo decyzyjne',X_train, y_train,X_test, y_test, 0.21)#, show_roc=True,show_precision_recall=True)
 scores.append(('Drzewo decyzyjne',DTC_accuracy,DTC_time))
 
@@ -327,9 +378,11 @@ print('Importances for DTC')
 print(sorted(zip(importancesDTC, feature_names), reverse=True))
 
 # random forest
-modelRFC = RandomForestClassifier(n_estimators=250,
-                              max_depth=10,
-                              min_samples_leaf=16)
+modelRFC = RandomForestClassifier(n_estimators=200,
+                              max_depth=30,
+                              min_samples_split=10,
+                              min_samples_leaf=1,
+                              bootstrap=False)
 RFC_accuracy, RFC_time = fitModel(modelRFC,'Las losowy',X_train, y_train,X_test, y_test )#,show_roc=True,show_precision_recall=True)
 scores.append(('Las losowy',RFC_accuracy,RFC_time))
 
