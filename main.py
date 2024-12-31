@@ -442,6 +442,7 @@ torch.save(model.state_dict(), 'DjangoCreditApproval/credit_card_model.pth')
 
 with torch.no_grad():
     y_pred = model(X_test_tensor)
+    y_pred_proba = y_pred.numpy()
     y_pred_labels = (y_pred >= 0.5).float()  # Threshold at 0.5
 
     # Convert tensors to numpy arrays for confusion matrix
@@ -476,15 +477,36 @@ with torch.no_grad():
                 xticklabels=['0', '1'],
                 yticklabels=['0', '1'])
 
+    plt.title(f"Macierz pomyłek dla sieci neuronowych biblioteki Pytorch")
+    plt.ylabel("Wartość rzeczywista")
+    plt.xlabel("Wartość przewidywana")
+    plt.show()
+
+    precision, recall, _ = precision_recall_curve(y_test_np, y_pred_proba)
+
+    plt.figure(figsize=(6, 4))
+    plt.plot(recall, precision, label='Krzywa precyzji i czułości')
+    plt.xlabel('Czułość')
+    plt.ylabel('Precyzja')
+    plt.title('Krzywa precyzji i czułości')
+    plt.show()
+    # ROC Curve
+    fpr, tpr, _ = roc_curve(y_test_np, y_pred_proba)
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(6, 4))
+    plt.plot(fpr, tpr, label=f'ROC curve (AUC = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], 'r--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Wskażnik fałszywych pozytywów')
+    plt.ylabel('Wskażnik prawdziwych pozytywów')
+    plt.title('Krzywa charakterystyki odbiornika ROC')
+    plt.legend(loc="lower right")
+    plt.show()
 
 
-# Set titles and labels
-plt.title(f"Macierz pomyłek dla sieci neuronowych biblioteki Pytorch")
-plt.ylabel("Wartość rzeczywista")
-plt.xlabel("Wartość przewidywana")
 
-    # Show the heatmap
-plt.show()
 
 
 # Tensorflow
