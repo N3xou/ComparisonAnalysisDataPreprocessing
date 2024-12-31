@@ -708,7 +708,7 @@ ax1.set_ylabel('Celność (%)', fontsize=12)
 ax1.set_ylim(0, 1)
 
 for i, v in enumerate(accuracies):
-    ax1.text(i, v + 0.02, f'{v:.2f}', color='black', ha='center', va='center', fontsize=10, fontweight='bold')
+    ax1.text(i, v - 0.1, f'{v:.2f}', color='black', ha='center', va='center', fontsize=10, fontweight='bold')
 
 for i, v in enumerate(times):
     ax2.text(i, v + 0.2, f'{v:.2f}', color='red', ha='center', va='bottom', fontsize=10, fontweight='bold')
