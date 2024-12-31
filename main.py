@@ -107,14 +107,14 @@ def fitModel(model, name,x, y, X_test, y_test,  adjustment = 0.5, show_matrix = 
     accuracy = accuracy_score(y_test, y_pred_proba_adj)
     print('Dokładność dla {} wynosi {:.5}'.format(name,accuracy))
     print(pd.DataFrame(confusion_matrix(y_test, y_pred_proba_adj)))
-    conf_matrix = confusion_matrix(y_test, y_pred_proba_adj, normalize='true')
+    conf_matrix = confusion_matrix(y_test, y_pred_proba_adj)
     print(pd.DataFrame(conf_matrix))
     print(f"Tablica kontyngencji dla {name}:\n", conf_matrix)
     class_report = classification_report(y_test, y_pred)
     print(f"\nRaport klasyfikacji dla {name}:\n", class_report)
     if show_matrix:
         plt.figure(figsize=(6, 4))
-        sns.heatmap(conf_matrix, annot=True, fmt='.2f', cmap='Blues', cbar=True)
+        sns.heatmap(conf_matrix, annot=True,fmt='d', cmap='Blues', cbar=True)
         plt.title(f"Macierz pomyłek dla modelu {name}")
         plt.ylabel("Wartość rzeczywista")
         plt.xlabel("Wartość przewidywana")
@@ -339,9 +339,9 @@ print('Importances for RFC')
 print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
-modelSVM = svm.SVC(C = 0.001, kernel='linear', probability=True)
-SVM_accuracy , SVM_time = fitModel(modelSVM,'Maszyna wektorów nośnych',X_train, y_train,X_test, y_test, show_roc=True,show_precision_recall=True)
-scores.append(('Maszyna wektorów nośnych',SVM_accuracy,SVM_time))
+#modelSVM = svm.SVC(C = 0.001, kernel='linear', probability=True)
+#SVM_accuracy , SVM_time = fitModel(modelSVM,'Maszyna wektorów nośnych',X_train, y_train,X_test, y_test, show_roc=True,show_precision_recall=True)
+#scores.append(('Maszyna wektorów nośnych',SVM_accuracy,SVM_time))
 #feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 
 #print('Coefficients for SVM (absolute values, sorted):')
@@ -472,14 +472,14 @@ with torch.no_grad():
     conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
 
     plt.figure(figsize=(6, 4))
-    sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True,
-                xticklabels=['Predicted Negative', 'Predicted Positive'],
-                yticklabels=['Actual Negative', 'Actual Positive'])
+    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', cbar=True,
+                xticklabels=['0', '1'],
+                yticklabels=['0', '1'])
 
 
 
 # Set titles and labels
-plt.title(f"Macierz pomyłek dla modelu biblioteki Pytorch")
+plt.title(f"Macierz pomyłek dla sieci neuronowych biblioteki Pytorch")
 plt.ylabel("Wartość rzeczywista")
 plt.xlabel("Wartość przewidywana")
 
@@ -532,7 +532,6 @@ def CreditCardTensor():
     end_time = time.time()
     training_time = end_time - start_time
     print(f"Training time: {training_time:.2f} seconds")
-
     # Evaluate the model
     start_time = time.time()
 
@@ -568,13 +567,13 @@ def CreditCardTensor():
 
     # Plotting confusion matrix
     plt.figure(figsize=(6, 4))
-    sns.heatmap(conf_matrix_normalized, annot=True, fmt='.2f', cmap='Blues', cbar=True,
-                xticklabels=['Predicted Negative', 'Predicted Positive'],
-                yticklabels=['Actual Negative', 'Actual Positive'])
+    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', cbar=True,
+                xticklabels=['0', '1'],
+                yticklabels=['0', '1'])
 
-    plt.title("Confusion Matrix for TensorFlow Model")
-    plt.ylabel("Actual")
-    plt.xlabel("Predicted")
+    plt.title(f"Macierz pomyłek dla sieci neuronowych biblioteki TensorFlow")
+    plt.ylabel("Wartość rzeczywista")
+    plt.xlabel("Wartość przewidywana")
 
     plt.show()
     return time_callback
