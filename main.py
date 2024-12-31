@@ -129,7 +129,7 @@ def fitModel(model, name,x, y, X_test, y_test,  adjustment = 0.5, show_matrix = 
         plt.ylim([0.0, 1.05])
         plt.xlabel('Wskaźnik fałszywych pozytywów')
         plt.ylabel('Wskaźnik prawdziwych pozytywów')
-        plt.title('Krzywa charakterystyki odbiornika (ROC)')
+        plt.title(f'Krzywa charakterystyki odbiornika (ROC) dla modelu {name}')
         plt.legend(loc="lower right")
         plt.show()
     if show_precision_recall:
@@ -138,7 +138,7 @@ def fitModel(model, name,x, y, X_test, y_test,  adjustment = 0.5, show_matrix = 
         plt.plot(recall, precision, label='Krzywa precyzji i czułości')
         plt.xlabel('Czułość')
         plt.ylabel('Precyzja')
-        plt.title('Krzywa precyzji i czułości')
+        plt.title(f'Krzywa precyzji i czułości dla modelu {name}')
         plt.show()
     print('-------Success-------')
     return accuracy,training_time
@@ -307,7 +307,7 @@ scores = []
 # LogisticRegression
 
 modelReg = LogisticRegression(solver='liblinear', random_state=1, class_weight='balanced',C=0.1)
-LR_accuracy, LR_time = fitModel(modelReg,'Regresja logistyczna', X_train, y_train,X_test, y_test, 0.26, show_roc=True,show_precision_recall=True)
+LR_accuracy, LR_time = fitModel(modelReg,'Regresja logistyczna', X_train, y_train,X_test, y_test, 0.26)#, show_roc=True,show_precision_recall=True)
 scores.append(('Regresja logistyczna',LR_accuracy,LR_time))
 feature_coef = pd.Series(modelReg.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
 print('Coefficients for Logistic Regression')
@@ -317,7 +317,7 @@ print(feature_coef)
 modelDTC = DecisionTreeClassifier(max_depth=15,
                          min_samples_split=8,
                                random_state=1)
-DTC_accuracy, DTC_time = fitModel(modelDTC,'Drzewo decyzyjne',X_train, y_train,X_test, y_test, 0.21, show_roc=True,show_precision_recall=True)
+DTC_accuracy, DTC_time = fitModel(modelDTC,'Drzewo decyzyjne',X_train, y_train,X_test, y_test, 0.21)#, show_roc=True,show_precision_recall=True)
 scores.append(('Drzewo decyzyjne',DTC_accuracy,DTC_time))
 
 # inspecting importances values for DecisionTree
@@ -330,7 +330,7 @@ print(sorted(zip(importancesDTC, feature_names), reverse=True))
 modelRFC = RandomForestClassifier(n_estimators=250,
                               max_depth=10,
                               min_samples_leaf=16)
-RFC_accuracy, RFC_time = fitModel(modelRFC,'Las losowy',X_train, y_train,X_test, y_test, show_roc=True,show_precision_recall=True)
+RFC_accuracy, RFC_time = fitModel(modelRFC,'Las losowy',X_train, y_train,X_test, y_test )#,show_roc=True,show_precision_recall=True)
 scores.append(('Las losowy',RFC_accuracy,RFC_time))
 
 importancesRFC = modelRFC.feature_importances_
@@ -417,8 +417,9 @@ for epoch in range(epochs):
     optimizer.step()
 
     elapsed_time = time.time() - start_time
-    if time.time() - start_time > max_training_time:
-        print(f"Stopping training after {max_training_time} seconds at epoch {epoch + 1}.")
+    if elapsed_time > max_training_time:
+        print(f"Stopping training after {elapsed_time} seconds at epoch {epoch + 1}.")
+        scores.append(('Sieci neuronowe PyTorch',accuracy,elapsed_time))
         break
 
     with torch.no_grad():
@@ -488,7 +489,7 @@ with torch.no_grad():
     plt.plot(recall, precision, label='Krzywa precyzji i czułości')
     plt.xlabel('Czułość')
     plt.ylabel('Precyzja')
-    plt.title('Krzywa precyzji i czułości')
+    plt.title('Krzywa precyzji i czułości dla sieci neuronowych biblioteki Pytorch')
     plt.show()
     # ROC Curve
     fpr, tpr, _ = roc_curve(y_test_np, y_pred_proba)
@@ -501,7 +502,7 @@ with torch.no_grad():
     plt.ylim([0.0, 1.05])
     plt.xlabel('Wskażnik fałszywych pozytywów')
     plt.ylabel('Wskażnik prawdziwych pozytywów')
-    plt.title('Krzywa charakterystyki odbiornika ROC')
+    plt.title('Krzywa charakterystyki odbiornika (ROC) dla sieci neuronowych biblioteki Pytorch')
     plt.legend(loc="lower right")
     plt.show()
 
@@ -532,6 +533,7 @@ class TimeAccuracyCallback(tf.keras.callbacks.Callback):
             self.times.append(elapsed_time)
             self.accuracies.append(logs['accuracy'])
         if elapsed_time > self.max_duration:
+            scores.append(('Sieci neuronowe TensorFlow',logs['accuracy'],elapsed_time))
             self.model.stop_training = True
 def CreditCardTensor():
 
@@ -598,6 +600,31 @@ def CreditCardTensor():
     plt.xlabel("Wartość przewidywana")
 
     plt.show()
+
+    # Calculate precision, recall, and thresholds for Precision-Recall curve
+    precision, recall, thresholds = precision_recall_curve(y_test_tensor.numpy(), y_pred)
+
+    # Plot Precision-Recall curve
+    plt.figure(figsize=(8, 6))
+    plt.plot(recall, precision, label='Krzywa precyzji i czułości')
+    plt.xlabel('Czułość')
+    plt.ylabel('Precyzja')
+    plt.title('Krzywa precyzji i czułości dla sieci neuronowych biblioteki TensorFlow')
+    plt.show()
+    # ROC Curve
+    fpr, tpr, _ = roc_curve(y_test_np, y_pred_proba)
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(6, 4))
+    plt.plot(fpr, tpr, label=f'ROC curve (AUC = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], 'r--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Wskażnik fałszywych pozytywów')
+    plt.ylabel('Wskażnik prawdziwych pozytywów')
+    plt.title('Krzywa charakterystyki odbiornika (ROC) dla sieci neuronowych biblioteki TensorFlow')
+    plt.legend(loc="lower right")
+    plt.show()
     return time_callback
 
 time_callback = CreditCardTensor()
@@ -614,7 +641,28 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
+# all models learning/timew
+model_names, accuracies, times = zip(*scores)
 
+fig, ax1 = plt.subplots(figsize=(10, 6))
+bars_accuracy = ax1.bar(model_names, accuracies, color='royalblue', label='Celność (%)')
+ax2 = ax1.twinx()
+ax2.plot(model_names, times, color='red', marker='o', linestyle='-', label='Czas uczenia (s)')
+ax1.set_xlabel('Czas uczenia (s)', fontsize=12)
+ax1.set_ylabel('Celność (%)', fontsize=12)
 
+# range for the (accuracy) between 0 and 1
+ax1.set_ylim(0, 1)
 
+for i, v in enumerate(accuracies):
+    ax1.text(i, v + 0.02, f'{v:.2f}', color='black', ha='center', va='center', fontsize=10, fontweight='bold')
 
+for i, v in enumerate(times):
+    ax2.text(i, v + 0.2, f'{v:.2f}', color='red', ha='center', va='bottom', fontsize=10, fontweight='bold')
+
+plt.title('Porównanie modeli: Celność i czas uczenia', fontsize=14)
+ax1.legend(loc='upper left', bbox_to_anchor=(0, 1), frameon=False)
+ax2.legend(loc='upper left', bbox_to_anchor=(0, 0.9), frameon=False)
+plt.tight_layout()
+
+plt.show()
