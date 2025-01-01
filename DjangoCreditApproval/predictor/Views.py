@@ -123,7 +123,7 @@ def predict_credit(request):
                 'Family_status_Widow': False,
 
             }
-
+            print(form.cleaned_data)
             df = df._append(row, ignore_index=True)
             # Set the selected income type column to True based on the user's input
             df['Children_count'] = form.cleaned_data['kids']
@@ -246,7 +246,7 @@ def predict_credit(request):
             # todo: model predicts same results with same confidence
             print(df.dtypes)
             print(df.head())
-            df = pd.DataFrame([row])
+            #df = pd.DataFrame([row])
             for col in df.columns:
                 if df[col].dtype == 'bool':  # Only cast boolean columns
                     df[col] = df[col].astype(int)
@@ -260,7 +260,7 @@ def predict_credit(request):
             # Determine loan approval status
             result_text = 'Approved' if prediction == 1 else 'Rejected'
             # Return the result in the template
-            return render(request, 'result.html', {'result': result_text, 'confidence': confidence})
+            return render(request, 'predict.html', {'result': result_text, 'confidence': confidence})
 
     else:
         form = CreditPredictionForm()
