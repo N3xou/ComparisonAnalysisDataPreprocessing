@@ -280,12 +280,16 @@ print(f'Datatypes\n{df.dtypes}')
 
 print(df.shape)
 
-df_for_iv = df.drop(columns = ['STATUS', 'ID'])
+#df_for_iv = df.drop(columns = ['STATUS', 'ID'])
 
-ivWoe(df_for_iv, 'target', show_woe=True)
+#ivWoe(df_for_iv, 'target', show_woe=True)
 
 # data for ML
 X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status'])
+
+df_for_iv = df.drop(columns = ['STATUS', 'ID','Gender', 'Car', 'Realty', 'Income_type', 'Education_type', 'Housing_type', 'Occupation','Family_status','DAYS_BIRTH','DAYS_EMPLOYED'])
+
+ivWoe(df_for_iv, 'target')
 
 print(X.dtypes)
 Y = df['target']
@@ -389,7 +393,13 @@ scores.append(('Las losowy',RFC_accuracy,RFC_time))
 importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
 print('Importances for RFC')
-print(sorted(zip(importancesRFC, feature_names), reverse=True))
+sorted_importances = sorted(zip(importancesRFC, feature_names), reverse=True)
+
+# Print two pairs per row
+for i in range(0, len(sorted_importances), 2):
+    pair = sorted_importances[i:i+2]
+    print(pair)
+#print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
 #modelSVM = svm.SVC(C = 0.001, kernel='linear', probability=True)
