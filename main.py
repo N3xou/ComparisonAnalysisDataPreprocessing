@@ -490,7 +490,7 @@ for epoch in range(epochs):
 model.eval()
 
 # Saving the state dictionary
-torch.save(model.state_dict(), 'DjangoCreditApproval/credit_card_model.pth')
+#torch.save(model.state_dict(), 'DjangoCreditApproval/credit_card_model.pth')
 #torch.save(model, 'DjangoCreditApproval/predictor/credit_card_model.pth')
 #print("Model saved to credit_card_model.pth.")
 

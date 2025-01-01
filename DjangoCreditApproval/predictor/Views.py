@@ -9,7 +9,6 @@ from tensorflow.python.feature_column.feature_column_v2 import numeric_column
 INSTALLED_APPS = [
     'predictor',
 ]
-# todo: format data from strings into numbers for the model.
 
 from .models import CreditCardTorch
 from django.shortcuts import render

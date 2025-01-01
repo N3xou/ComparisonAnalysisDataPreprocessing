@@ -18,6 +18,21 @@ class CreditPredictionForm(forms.Form):
         choices=[('Y', 'Yes'), ('N', 'No')],
         widget=forms.RadioSelect,
     )
+    mobil = forms.ChoiceField(
+        label='Has Mobile Phone?',
+        choices=[('Y', 'Yes'), ('N', 'No')],
+        widget=forms.RadioSelect,
+    )
+    work_phone = forms.ChoiceField(
+        label='Has Work Phone?',
+        choices=[('Y', 'Yes'), ('N', 'No')],
+        widget=forms.RadioSelect,
+    )
+    email = forms.ChoiceField(
+        label='Has Email?',
+        choices=[('Y', 'Yes'), ('N', 'No')],
+        widget=forms.RadioSelect,
+    )
     age = forms.IntegerField(label='Age(years)', min_value=0)
     family_size = forms.IntegerField(label='Family Size', min_value=1)
     kids = forms.IntegerField(label='Number of Children', min_value=0)
@@ -69,23 +84,6 @@ class CreditPredictionForm(forms.Form):
             ('Office Apartment', 'Office Apartment'),
         ]
     )
-
-    mobil = forms.ChoiceField(
-        label='Has Mobile Phone?',
-        choices=[('Y', 'Yes'), ('N', 'No')],
-        widget=forms.RadioSelect,
-    )
-    work_phone = forms.ChoiceField(
-        label='Has Work Phone?',
-        choices=[('Y', 'Yes'), ('N', 'No')],
-        widget=forms.RadioSelect,
-    )
-    email = forms.ChoiceField(
-        label='Has Email?',
-        choices=[('Y', 'Yes'), ('N', 'No')],
-        widget=forms.RadioSelect,
-    )
-
     # Occupation and family size
     occupation = forms.ChoiceField(
         label='Occupation',
