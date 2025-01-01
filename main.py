@@ -97,7 +97,7 @@ def ivWoe(data, target, bins=10, show_woe=False):
     return newDF, woeDF
 
 
-def fitModel(model, name,x, y, X_test, y_test,  adjustment = 0.5, show_matrix = True, show_roc = False,show_precision_recall = False):
+def fitModel(model, name,x, y, X_test, y_test,  adjustment = 0.5, show_matrix = False, show_roc = False,show_precision_recall = False):
     start_time = time.time()
     model.fit(x, y)
     training_time = time.time() - start_time
@@ -229,9 +229,12 @@ print('CHILDREN COUNT AND FAMILY ------------')
 print(df['Children_count'].value_counts())
 print(df['Family_count'].value_counts())
 
+cat = 1
 if (cat == 1):
-    df = categorize(df, 'Income', 4,  ["low", "medium", "high", 'highest'], qcut=True, replace=True)
-    df = categorize(df, 'Age', 3, ["young adult", "mature", "elder"], qcut=True, replace=False)
+    df = categorize(df, 'Income', 4, ["lowest", "low", "medium", "high"], qcut=True, replace=True)
+    df = categorize(df, 'DAYS_BIRTH', 5, ["youngest", "young adult", "mature", "elder", "oldest"], qcut=True,
+                    replace=True)
+
     df.loc[(df['Occupation'] == 'Waiters/barmen staff') |
            (df['Occupation'] == 'Cleaning staff') |
            (df['Occupation'] == 'Cooking staff') |
@@ -262,17 +265,21 @@ for col in onehot_cols:
     df = oneHot(df, col)
 print(f'Datatypes\n{df.dtypes}')
 
-#df_encoded = df.copy()
-#label_cols = ['Gender','Car','Realty']
-#for col in label_cols:
-#    le = LabelEncoder()
-#    print(f"Unique values in {col}: {df_encoded[col].unique()}")
-#    df_encoded[col] = le.fit_transform(df_encoded[col])
-#    print(f"Unique values in {col}: {df_encoded[col].unique()}")
-#df = df_encoded
+df_encoded = df.copy()
+label_cols = []
+for col in label_cols:
+    le = LabelEncoder()
+    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+    df_encoded[col] = le.fit_transform(df_encoded[col])
+    print(f"Unique values in {col}: {df_encoded[col].unique()}")
+df = df_encoded
 
-#oe = OrdinalEncoder(categories=[['highest', 'high', 'medium', 'low', 'lowest']])
-#df['num_cat_Employment_years'] = oe.fit_transform(df[['cat_Employment_years']]).astype(int)
+oe = OrdinalEncoder(categories=[['high', 'medium', 'low', 'lowest']])
+df['Income'] = oe.fit_transform(df[['Income']]).astype(int)
+
+oe = OrdinalEncoder(categories=[["youngest", "young adult", "mature", "elder", "oldest"]])
+df['DAYS_BIRTH'] = oe.fit_transform(df[['DAYS_BIRTH']]).astype(int)
+
 
 ###### GRAPHS
 
@@ -289,9 +296,7 @@ X = df.drop(columns = ['target', 'STATUS', 'ID','Gender', 'Car', 'Realty', 'Inco
 
 print(X.dtypes)
 Y = df['target']
-print('-------------------------------------')
-print('-------------------------------------')
-print('-------------------------------------')
+
 # Modeling
 
 print(X.shape)
@@ -389,10 +394,15 @@ scores.append(('Las losowy',RFC_accuracy,RFC_time))
 importancesRFC = modelRFC.feature_importances_
 feature_names = X_train.columns
 print('Importances for RFC')
-print(sorted(zip(importancesRFC, feature_names), reverse=True))
+sorted_importances = sorted(zip(importancesRFC, feature_names), reverse=True)
+for i in range(0, len(sorted_importances), 2):
+    pair = sorted_importances[i:i+2]
+    print(pair)
+#print(sorted(zip(importancesRFC, feature_names), reverse=True))
 
 # SVM
-#modelSVM = svm.SVC(C = 0.001, kernel='linear', probability=True)
+
+#modelSVM = svm.SVC(C = 0.8, kernel='linear', probability=True)
 #SVM_accuracy , SVM_time = fitModel(modelSVM,'Maszyna wektorów nośnych',X_train, y_train,X_test, y_test, show_roc=True,show_precision_recall=True)
 #scores.append(('Maszyna wektorów nośnych',SVM_accuracy,SVM_time))
 #feature_coef_svm = pd.Series(modelSVM.coef_[0], index=X_train.columns).abs().sort_values(ascending=False)
