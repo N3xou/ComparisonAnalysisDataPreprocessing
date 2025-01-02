@@ -281,6 +281,8 @@ oe = OrdinalEncoder(categories=[["youngest", "young adult", "mature", "elder", "
 df['DAYS_BIRTH'] = oe.fit_transform(df[['DAYS_BIRTH']]).astype(int)
 
 
+
+
 ###### GRAPHS
 
 # calculting WOE and IV
