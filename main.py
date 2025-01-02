@@ -303,8 +303,11 @@ print(X.shape)
 Y = Y.astype('int')
 X_balance,Y_balance = SMOTE().fit_resample(X,Y)
 X_balance = pd.DataFrame(X_balance, columns = X.columns)
-X_train, X_test, y_train, y_test = train_test_split(X_balance,Y_balance,
-                                                    stratify=Y_balance, test_size=0.3,
+#X_train, X_test, y_train, y_test = train_test_split(X_balance,Y_balance,
+#                                                    stratify=Y_balance, test_size=0.3,
+#                                                    random_state = 10086)
+X_train, X_test, y_train, y_test = train_test_split(X,Y,
+                                                    stratify=Y, test_size=0.3,
                                                     random_state = 10086)
 
 if grid == 1:

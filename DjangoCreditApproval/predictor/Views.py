@@ -246,7 +246,7 @@ def predict_credit(request):
             # todo: model predicts same results with same confidence
             print(df.dtypes)
             print(df.head())
-            #df = pd.DataFrame([row])
+            df = pd.DataFrame([row])
             for col in df.columns:
                 if df[col].dtype == 'bool':  # Only cast boolean columns
                     df[col] = df[col].astype(int)
